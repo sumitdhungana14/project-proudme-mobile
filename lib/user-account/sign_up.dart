@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' show post, get;
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
+import 'package:project_proud_me/introduction/introduction.dart';
+import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/sign_up_verification.dart';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
 
 class SignUpScreen extends StatefulWidget {
@@ -133,10 +136,10 @@ final Map<String, dynamic> _formData = {
 
     String jsonData = jsonEncode(_formData);
 
-    registerAndRedirectToEmailVerificationOnSuccess(jsonData);
+    registerUser(jsonData);
   }
 
-  Future<void> registerAndRedirectToEmailVerificationOnSuccess(String jsonData) async {
+  Future<void> registerUser(String jsonData) async {
     setState(() {
       _isLoading = true;
     });
@@ -149,10 +152,40 @@ final Map<String, dynamic> _formData = {
       );
 
       if (response.statusCode == 200) {
-        String email = _formData['email'];
+
+        var loginResponse = await post(
+        Uri.parse(login),
+        body: jsonData,
+        headers: baseHttpHeader,
+      );
+
+      if (loginResponse.statusCode == 200) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString(authTokenKey, loginResponse.body);
+        
+        var userResponse = await get(
+            Uri.parse(users),
+            headers: {
+              'Authorization': 'Bearer ${loginResponse.body}',
+            },
+          );
+
+          if (userResponse.statusCode == 200) {
+              await prefs.setString(userDataKey, userResponse.body);
+            } else if (userResponse.statusCode == 401) {
+              await prefs.remove(authTokenKey);
+              await prefs.remove(userDataKey);
+            }
+          
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SignUpVerificationScreen(email: email)),
+          MaterialPageRoute(builder: (context) => MyJournalScreen()),
+        );
+      }
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyJournalScreen()),
         );
       } 
     } catch (e) {

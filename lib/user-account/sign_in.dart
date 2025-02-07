@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert' show jsonEncode;
-import 'package:http/http.dart' show post;
+import 'package:http/http.dart' show post, get;
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
 import 'package:project_proud_me/introduction/introduction.dart';
+import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/forgot_credentials.dart';
 import 'package:project_proud_me/user-account/sign_up.dart';
@@ -61,9 +62,24 @@ class _SignInScreenState extends State<SignInScreen> {
       if (response.statusCode == 200) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString(authTokenKey, response.body);
+        
+        var userResponse = await get(
+            Uri.parse(users),
+            headers: {
+              'Authorization': 'Bearer ${response.body}',
+            },
+          );
+
+          if (userResponse.statusCode == 200) {
+              await prefs.setString(userDataKey, userResponse.body);
+            } else if (userResponse.statusCode == 401) {
+              await prefs.remove(authTokenKey);
+              await prefs.remove(userDataKey);
+            }
+          
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Introduction()),
+          MaterialPageRoute(builder: (context) => MyJournalScreen()),
         );
       } else if (response.statusCode == 403) {
         String email = _formData['email'];

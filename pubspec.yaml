@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^6.0.9
+  url_launcher: ^6.2.4
   http: ^1.2.1
   shared_preferences: ^2.2.3
   fluttertoast: ^8.2.5

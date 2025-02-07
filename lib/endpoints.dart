@@ -1,4 +1,4 @@
-const String baseUrl = 'https://project-proudme-1.onrender.com';
+const String baseUrl = 'https://project-proudme.onrender.com';
 const String users = '$baseUrl/users';
 const String login = '$baseUrl/login';
 const String user = '$baseUrl/user';

@@ -1,5 +1,4 @@
-const String introductionStartingText = 'Welcome to the home page of Project ProudMe! Project ProudMe is an adolescent obesity prevention intervention based in Louisiana. Project ProudMe is led by Dr. Senlin Chen and his team. \nThis website includes three main components of the intervention: SMART Goal-Setting (My Journal + Behavior Charts), ProudMe PE, and ProudMe Cafeteria.';
-
+const String introductionStartingText = 'Welcome to the home page of Project ProudMe! Project ProudMe is an adolescent obesity prevention intervention based in Louisiana. ProudMe has 4 components: ProudMe Curriculum, ProudMe Tech, ProudMe Cafeteria and ProudMe PD. Thank you for being part of the project!';
 const String journalHeader = 'I. SMART Goal-Setting (“My Journal”)';
 
 const List<String> journalList = [
@@ -24,8 +23,8 @@ const List<String> cafeteriaList = [
   'A healthy food environment empowers healthy eating. The ProudMe Cafeteria will promote healthier eating among students at the participating schools.'
 ];
 
-const String introductionEndingText1 = 'For questions about the Project ProudMe, please contact Dr. Chen’s lab – the Pedagogical Kinesiology Lab. ';
-const String introductionEndingText2 = 'If your school is interested in becoming a partnership school, our lab offers small grants as incentives for you to participate. Please contact Dr. Chen. Thank you!';
+const String introductionEndingText1 = 'For questions about the Project ProudMe, please contact Dr. Chen’s lab – the Pedagogical Kinesiology Lab or Dr. Chen. Thank you!';
+const String introductionEndingText2 = 'or Dr. Chen. Thank you!';
 
 const String serviceAgreement = 'Agree to terms of service.';
 const String adsAgreement = 'Agree to receive ad updates by email.';
