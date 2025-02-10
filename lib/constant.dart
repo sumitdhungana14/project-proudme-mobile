@@ -55,7 +55,7 @@ const List<String> myJournalItems = [
 ];
 const secondaryColor = Color(0xfff5b342);
 
-const Map<String, List<String>> activityTypes = {
+Map<String, List<String>> activityTypes = {
   'Strenuous': ['Running', 'Jogging', 'Football', 'Soccer', 'Basketball'],
   'Moderate': ['Baseball', 'Tennis', 'Fast Walking', 'Volleyball', 'Badminton'],
   'Mild': ['Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']

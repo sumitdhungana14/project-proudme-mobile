@@ -219,11 +219,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     setState(() {
       if (_selectedScreenTimeType != '') {
         if (_goalMinuteControllers[_selectedScreenTimeType]!.text.isEmpty) {
-          _goalMinuteControllers[_selectedScreenTimeType]!.text = 1.toString();
+          _goalMinuteControllers[_selectedScreenTimeType]!.text = 15.toString();
         } else {
           _goalMinuteControllers[_selectedScreenTimeType]!.text = (int.parse(
                       _goalMinuteControllers[_selectedScreenTimeType]!.text) +
-                  1)
+                  15)
               .toString();
         }
       }
@@ -235,12 +235,12 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
       if (_selectedScreenTimeType != '') {
         if (_behaviorMinuteControllers[_selectedScreenTimeType]!.text.isEmpty) {
           _behaviorMinuteControllers[_selectedScreenTimeType]!.text =
-              1.toString();
+              15.toString();
         } else {
           _behaviorMinuteControllers[_selectedScreenTimeType]!.text =
               (int.parse(_behaviorMinuteControllers[_selectedScreenTimeType]!
                           .text) +
-                      1)
+                      15)
                   .toString();
         }
       }
@@ -283,11 +283,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     setState(() {
       if (_selectedScreenTimeType != '') {
         if (_goalMinuteControllers[_selectedScreenTimeType]!.text.isNotEmpty &&
-            int.parse(_goalMinuteControllers[_selectedScreenTimeType]!.text) >
-                0) {
+            int.parse(_goalMinuteControllers[_selectedScreenTimeType]!.text) >=
+                15) {
           _goalMinuteControllers[_selectedScreenTimeType]!.text = (int.parse(
                       _goalMinuteControllers[_selectedScreenTimeType]!.text) -
-                  1)
+                  15)
               .toString();
         }
       }
@@ -301,12 +301,12 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                 .text
                 .isNotEmpty &&
             int.parse(
-                    _behaviorMinuteControllers[_selectedScreenTimeType]!.text) >
-                0) {
+                    _behaviorMinuteControllers[_selectedScreenTimeType]!.text) >=
+                15) {
           _behaviorMinuteControllers[_selectedScreenTimeType]!.text =
               (int.parse(_behaviorMinuteControllers[_selectedScreenTimeType]!
                           .text) -
-                      1)
+                      15)
                   .toString();
         }
       }

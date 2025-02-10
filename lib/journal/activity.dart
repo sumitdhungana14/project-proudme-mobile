@@ -21,6 +21,7 @@ class ActivityCard extends StatefulWidget {
 class _ActivityCardState extends State<ActivityCard> {
   String _selectedActivityType = '';
   List<String> _dependentItems = [];
+  String _selectedActivityCategory = '';
 
   late Map<String, TextEditingController> _goalHourControllers;
   late Map<String, TextEditingController> _goalMinuteControllers;
@@ -33,9 +34,13 @@ class _ActivityCardState extends State<ActivityCard> {
   TextEditingController _behaviorMinuteController = TextEditingController();
 
   final TextEditingController _reflectionController = TextEditingController();
+  TextEditingController _newActivityController = TextEditingController();
 
   bool _isLoading = false;
   late String _feedback;
+
+  late Map<String, List<String>> activityMap;
+  //update the activityMap after fetching from the server (combination of fixed and user added activity types)
 
   String calculateTotalGoal() {
     int total = 0;
@@ -77,6 +82,31 @@ class _ActivityCardState extends State<ActivityCard> {
     return total.toString();
   }
 
+  void addNewActivity(String? newActivity) {
+    if (_selectedActivityCategory != '' && !activityMap[_selectedActivityCategory]!.contains(newActivity)) {
+      _selectedActivityType = newActivity!;
+      activityMap[_selectedActivityCategory]!.add(_selectedActivityType);
+      _newActivityController.clear();
+      showCustomToast(context, 'New Activity has been added.', Theme.of(context).primaryColor);
+      if (!_goalHourControllers.keys.contains(_selectedActivityType)) {
+        _goalHourControllers[newActivity] = TextEditingController();
+        _goalHourControllers[newActivity]!.text = 0.toString();
+        _goalMinuteControllers[newActivity] = TextEditingController();
+        _goalMinuteControllers[newActivity]!.text = 0.toString();
+        _behaviorHourControllers[newActivity] = TextEditingController();
+        _behaviorHourControllers[newActivity]!.text = 0.toString();
+        _behaviorMinuteControllers[newActivity] = TextEditingController();
+        _behaviorMinuteControllers[newActivity]!.text = 0.toString();
+      }
+      setState(() {
+        _goalHourController =_goalHourControllers[_selectedActivityType]!;
+        _goalMinuteController =_goalMinuteControllers[_selectedActivityType]!;
+        _behaviorHourController =_behaviorHourControllers[_selectedActivityType]!;
+        _behaviorMinuteController =_behaviorMinuteControllers[_selectedActivityType]!;
+        });
+    }
+  }
+
   void incrementGoalHour() {
     setState(() {
       if (_selectedActivityType != '') {
@@ -110,11 +140,11 @@ class _ActivityCardState extends State<ActivityCard> {
     setState(() {
       if (_selectedActivityType != '') {
         if (_goalMinuteControllers[_selectedActivityType]!.text.isEmpty) {
-          _goalMinuteControllers[_selectedActivityType]!.text = 1.toString();
+          _goalMinuteControllers[_selectedActivityType]!.text = 15.toString();
         } else {
           _goalMinuteControllers[_selectedActivityType]!.text =
               (int.parse(_goalMinuteControllers[_selectedActivityType]!.text) +
-                      1)
+                      15)
                   .toString();
         }
       }
@@ -126,11 +156,11 @@ class _ActivityCardState extends State<ActivityCard> {
       if (_selectedActivityType != '') {
         if (_behaviorMinuteControllers[_selectedActivityType]!.text.isEmpty) {
           _behaviorMinuteControllers[_selectedActivityType]!.text =
-              1.toString();
+              15.toString();
         } else {
           _behaviorMinuteControllers[_selectedActivityType]!.text = (int.parse(
                       _behaviorMinuteControllers[_selectedActivityType]!.text) +
-                  1)
+                  15)
               .toString();
         }
       }
@@ -169,11 +199,11 @@ class _ActivityCardState extends State<ActivityCard> {
     setState(() {
       if (_selectedActivityType != '') {
         if (_goalMinuteControllers[_selectedActivityType]!.text.isNotEmpty &&
-            int.parse(_goalMinuteControllers[_selectedActivityType]!.text) >
-                0) {
+            int.parse(_goalMinuteControllers[_selectedActivityType]!.text) >=
+                15) {
           _goalMinuteControllers[_selectedActivityType]!.text =
               (int.parse(_goalMinuteControllers[_selectedActivityType]!.text) -
-                      1)
+                      15)
                   .toString();
         }
       }
@@ -186,11 +216,11 @@ class _ActivityCardState extends State<ActivityCard> {
         if (_behaviorMinuteControllers[_selectedActivityType]!
                 .text
                 .isNotEmpty &&
-            int.parse(_behaviorMinuteControllers[_selectedActivityType]!.text) >
-                0) {
+            int.parse(_behaviorMinuteControllers[_selectedActivityType]!.text) >=
+                15) {
           _behaviorMinuteControllers[_selectedActivityType]!.text = (int.parse(
                       _behaviorMinuteControllers[_selectedActivityType]!.text) -
-                  1)
+                  15)
               .toString();
         }
       }
@@ -200,6 +230,8 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   void initState() {
     super.initState();
+    //init activityMap by combining fixed and user added activity types
+    _initActivityMap();
     _initGoalHourControllers();
     _initGoalMinuteControllers();
     _initBehaviorHourControllers();
@@ -207,9 +239,17 @@ class _ActivityCardState extends State<ActivityCard> {
     _fetchDataAndSetControllers();
   }
 
+  void _initActivityMap() {
+    activityMap =  Map<String, List<String>>.from(activityTypes);
+
+    //fetch the activity from server for a particular day,
+    // if user have added a new activity type then append the new type to the particular activity category
+    // on the map
+  }
+
   void _initGoalHourControllers() {
     _goalHourControllers = {};
-    activityTypes.values.forEach((activities) {
+    activityMap.values.forEach((activities) {
       activities.forEach((activity) {
         _goalHourControllers[activity] = TextEditingController();
         _goalHourControllers[activity]!.text = 0.toString();
@@ -219,7 +259,7 @@ class _ActivityCardState extends State<ActivityCard> {
 
   void _initGoalMinuteControllers() {
     _goalMinuteControllers = {};
-    activityTypes.values.forEach((activities) {
+    activityMap.values.forEach((activities) {
       activities.forEach((activity) {
         _goalMinuteControllers[activity] = TextEditingController();
         _goalMinuteControllers[activity]!.text = 0.toString();
@@ -229,7 +269,7 @@ class _ActivityCardState extends State<ActivityCard> {
 
   void _initBehaviorHourControllers() {
     _behaviorHourControllers = {};
-    activityTypes.values.forEach((activities) {
+    activityMap.values.forEach((activities) {
       activities.forEach((activity) {
         _behaviorHourControllers[activity] = TextEditingController();
         _behaviorHourControllers[activity]!.text = 0.toString();
@@ -239,7 +279,7 @@ class _ActivityCardState extends State<ActivityCard> {
 
   void _initBehaviorMinuteControllers() {
     _behaviorMinuteControllers = {};
-    activityTypes.values.forEach((activities) {
+    activityMap.values.forEach((activities) {
       activities.forEach((activity) {
         _behaviorMinuteControllers[activity] = TextEditingController();
         _behaviorMinuteControllers[activity]!.text = 0.toString();
@@ -264,6 +304,8 @@ class _ActivityCardState extends State<ActivityCard> {
           var activityData = responseBody.first as Map<String, dynamic>;
           _reflectionController.text = activityData['reflection'];
           Map<String, dynamic> activities = activityData['activities'];
+
+          //instead of the constant activityList use combined list from the activityMap
           activityList.forEach((item) {
             _goalHourControllers[item]!.text =
                 activities[item]['goal']['hours'].toString();
@@ -435,10 +477,11 @@ class _ActivityCardState extends State<ActivityCard> {
                                       labelText: 'Select activity category.'),
                                   onChanged: (value) {
                                     setState(() {
+                                      _selectedActivityCategory = value!;
                                       _selectedActivityType =
-                                          activityTypes[value!]!.first;
+                                          activityMap[value!]!.first;
                                       _dependentItems =
-                                          activityTypes[value!] ?? [];
+                                          activityMap[value!] ?? [];
                                       _goalHourController =
                                           _goalHourControllers[
                                               _selectedActivityType]!;
@@ -453,7 +496,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                               _selectedActivityType]!;
                                     });
                                   },
-                                  items: activityTypes.keys
+                                  items: activityMap.keys
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -493,6 +536,75 @@ class _ActivityCardState extends State<ActivityCard> {
                                   }).toList(),
                                 ),
                                 const SizedBox(
+                                  height: 20,
+                                ),
+                                Visibility(
+                                  visible: _selectedActivityType.isEmpty,
+                                  child: Text(
+                                    'Select a physical activity to set and track your behavior.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontFamily,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: _selectedActivityCategory != '',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Text component
+                                        Text(
+                                          'Don\'t see a physical activity you are looking for?',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: fontFamily,
+                                            color: Theme.of(context).primaryColor,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10), // Add space between the text and the row
+                                        // Row with TextFormField and IconButton
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller: _newActivityController,
+                                                decoration: const InputDecoration(
+                                                  labelText: 'Add a new physical activity',
+                                                ),
+                                                keyboardType: TextInputType.text,
+                                                onChanged: (value) => setState(() {}),
+                                                inputFormatters: <TextInputFormatter>[
+                                                  FilteringTextInputFormatter.singleLineFormatter,
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10), // Space between TextFormField and IconButton
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context).primaryColor,
+                                                borderRadius: BorderRadius.circular(4), // Rounded corners for button
+                                              ),
+                                              child: IconButton(
+                                                icon: const Icon(Icons.add),
+                                                color: Colors.white,
+                                                onPressed: () {
+                                                  if (_newActivityController.text.isNotEmpty) {
+                                                    addNewActivity(_newActivityController.text);
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
                                   height: 20,
                                 ),
                                 Text(
@@ -773,41 +885,49 @@ class _ActivityCardState extends State<ActivityCard> {
                                     fontFamily: fontFamily,
                                   ),
                                 ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                
                               ],
                             ),
                           ),
                         ),
                       )),
-                  const Divider(
-                    thickness: 1,
-                    color: Colors.black,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 5,
+                  Visibility(
+                    visible: _selectedActivityType != '',
+                    child: Expanded(
+                        flex: 1,
+                        child: Column(
+                          children: [
+                            const Divider(
+                              thickness: 1,
+                              color: Colors.black,
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                save();
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                    const Color(0xfff5b342)),
+                              ),
+                              child: const Text(
+                                'Save',
+                                style: TextStyle(
+                                    fontFamily: fontFamily,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              ),
+                            ),
+                          ],
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            save();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all<Color>(
-                                const Color(0xfff5b342)),
-                          ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
-                                fontFamily: fontFamily,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  )
                 ],
               ),
             ));
