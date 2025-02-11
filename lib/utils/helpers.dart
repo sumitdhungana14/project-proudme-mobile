@@ -41,7 +41,8 @@ String getPhysicalActivityBehaviorPayload(
     String feedback,
     String reflection,
     String totalGoal,
-    String totalBehavior) {
+    String totalBehavior,
+    Map<String, List<String>> activityMap) {
   String date = getNowInFormat(dateFormat);
   String dateToday = getNowInFormat('yyyy-MM-ddTHH:mm:ss.SSSZ');
 
@@ -50,18 +51,25 @@ String getPhysicalActivityBehaviorPayload(
 
   Map<String, dynamic> activities = {};
 
-  activityList.forEach((item) {
-    int goalHours = int.tryParse(goalHourController[item]!.text) ?? 0;
-    int goalMinutes = int.tryParse(goalMinuteController[item]!.text) ?? 0;
+  activityMap.keys.forEach((key) {
+    List<String> setActivities = activityMap[key]!;
+    Map<String, dynamic> activitiesMap = {};
 
-    int behaviorHours = int.tryParse(behaviorHourController[item]!.text) ?? 0;
-    int behaviorMinutes =
-        int.tryParse(behaviorMinuteController[item]!.text) ?? 0;
 
-    activities[item] = {
-      'goal': {'hours': goalHours, 'minutes': goalMinutes},
-      'behavior': {'hours': behaviorHours, 'minutes': behaviorMinutes},
-    };
+    setActivities.forEach((item) {
+      int goalHours = int.tryParse(goalHourController[item]!.text) ?? 0;
+      int goalMinutes = int.tryParse(goalMinuteController[item]!.text) ?? 0;
+
+      int behaviorHours = int.tryParse(behaviorHourController[item]!.text) ?? 0;
+      int behaviorMinutes = int.tryParse(behaviorMinuteController[item]!.text) ?? 0;
+
+      activitiesMap[item] = {
+        'goal': {'hours': goalHours, 'minutes': goalMinutes},
+        'behavior': {'hours': behaviorHours, 'minutes': behaviorMinutes},
+      };
+    });
+    
+    activities[key] = activitiesMap;
   });
 
   bool goalStatus = behaviorValue >= goalValue;
@@ -315,21 +323,20 @@ String getChatbotPayloadForSleep(String goalHour, String goalMinute,
 
 String getChatbotPayloadForPhysicalActivity(
     int totalGoal, int totalBehavior, String reflection) {
-  double percentageAchieved = (totalBehavior / totalGoal) * 100;
 
-  double percentageOfRecommendedGoal = (totalBehavior / 9) * 100;
-
-  String content = "Health goal type: physical activity, "
-      "Recommended value: $recommendedPhysicalActivityValue, "
-      "Actual Goal Value: ${totalGoal.toStringAsFixed(2)}, "
-      "Actual behavior value achieved: ${totalBehavior.toStringAsFixed(2)}, "
-      "percentage of actual goal achieved: ${percentageAchieved.toStringAsFixed(2)}%, "
-      "percentage of recommended goal achieved: ${percentageOfRecommendedGoal.toStringAsFixed(2)}%, "
-      "Reflection: $reflection.";
+  String systemContent = "Provide feedback based on the user's actual behavior compared to both their set personal goals and default recommended value.";
+  String userContent = "Goal Type: Physical Activity, "
+      "Recommended value by default: $recommendedPhysicalActivityValue minutes, "
+      "Personal goal that student set: $totalGoal minutes, "
+      "Goal that student achieved: $totalBehavior minutes, "
+      "Reflection: $reflection, "
+      "Personal goal met: ${totalBehavior >= totalGoal}, "
+      "Recommended goal met: ${totalBehavior >= recommendedPhysicalActivityValue}";
 
   Map<String, List<Map<String, String>>> payload = {
     'prompt': [
-      {'role': 'system', 'content': content}
+      {'role': 'system', 'content': systemContent},
+      {'role': 'system', 'content': userContent}
     ]
   };
 

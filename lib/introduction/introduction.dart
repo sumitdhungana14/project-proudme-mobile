@@ -153,7 +153,7 @@ class _IntroductionState extends State<Introduction> {
                 children: _isSignedIn ?
                 [
                   const Text(
-                  "Go to Journal screen to track your behaviour.",
+                  "Go to Journal screen to set goals and track your behavior.",
                   style: TextStyle(
                     fontSize: 25.0,
                     fontFamily: fontFamily,
@@ -181,7 +181,7 @@ class _IntroductionState extends State<Introduction> {
                   ),
                 )] : [
                   const Text(
-                  "Login to track your behaviour.",
+                  "Login to set goals and track your behavior.",
                   style: TextStyle(
                     fontSize: 25.0,
                     fontFamily: fontFamily,

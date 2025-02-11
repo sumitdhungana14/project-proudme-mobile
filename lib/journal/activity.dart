@@ -40,7 +40,7 @@ class _ActivityCardState extends State<ActivityCard> {
   late String _feedback;
 
   late Map<String, List<String>> activityMap;
-  //update the activityMap after fetching from the server (combination of fixed and user added activity types)
+  late Map<String, dynamic> _activities;
 
   String calculateTotalGoal() {
     int total = 0;
@@ -230,21 +230,24 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   void initState() {
     super.initState();
-    //init activityMap by combining fixed and user added activity types
-    _initActivityMap();
-    _initGoalHourControllers();
-    _initGoalMinuteControllers();
-    _initBehaviorHourControllers();
-    _initBehaviorMinuteControllers();
-    _fetchDataAndSetControllers();
+    _fetchData();
   }
 
   void _initActivityMap() {
     activityMap =  Map<String, List<String>>.from(activityTypes);
 
-    //fetch the activity from server for a particular day,
-    // if user have added a new activity type then append the new type to the particular activity category
-    // on the map
+    _activities.keys.forEach((key) {
+      Map<String, dynamic> savedActivitiesForCurCategory = _activities[key];
+
+      List<String> typesSavedToServer = savedActivitiesForCurCategory.keys.toList();
+      List<String> locallySavedTypes = activityMap[key]!;
+
+      for (var type in typesSavedToServer) {
+        if (!locallySavedTypes.contains(type)) {
+          locallySavedTypes.add(type);
+        }
+      }
+    });
   }
 
   void _initGoalHourControllers() {
@@ -287,7 +290,20 @@ class _ActivityCardState extends State<ActivityCard> {
     });
   }
 
-  void _fetchDataAndSetControllers() async {
+  void _setControllers() {
+    activityMap.keys.forEach((key) {
+      List<String> types = activityMap[key]!;
+
+      types.forEach((item) {
+        _goalHourControllers[item]!.text = _activities[key][item]['goal']['hours'].toString();
+        _goalMinuteControllers[item]!.text = _activities[key][item]['goal']['minutes'].toString();
+        _behaviorHourControllers[item]!.text = _activities[key][item]['behavior']['hours'].toString();
+        _behaviorMinuteControllers[item]!.text = _activities[key][item]['behavior']['minutes'].toString();
+      });
+    });
+  }
+
+  Future<void> _fetchData() async {
     setState(() {
       _isLoading = true;
     });
@@ -303,24 +319,13 @@ class _ActivityCardState extends State<ActivityCard> {
         if (responseBody.isNotEmpty) {
           var activityData = responseBody.first as Map<String, dynamic>;
           _reflectionController.text = activityData['reflection'];
-          Map<String, dynamic> activities = activityData['activities'];
-
-          //instead of the constant activityList use combined list from the activityMap
-          activityList.forEach((item) {
-            _goalHourControllers[item]!.text =
-                activities[item]['goal']['hours'].toString();
-            _goalMinuteControllers[item]!.text =
-                activities[item]['goal']['minutes'].toString();
-            _behaviorHourControllers[item]!.text =
-                activities[item]['behavior']['hours'].toString();
-            _behaviorMinuteControllers[item]!.text =
-                activities[item]['behavior']['minutes'].toString();
-          });
           setState(() {
+            _activities = activityData['activities'];
             _feedback = activityData['feedback'];
           });
         } else {
           setState(() {
+            _activities = {};
             _feedback = '';
           });
         }
@@ -332,6 +337,13 @@ class _ActivityCardState extends State<ActivityCard> {
         _isLoading = false;
       });
     }
+
+    _initActivityMap();
+    _initGoalHourControllers();
+    _initGoalMinuteControllers();
+    _initBehaviorHourControllers();
+    _initBehaviorMinuteControllers();
+    _setControllers();
   }
 
   void save() async {
@@ -365,7 +377,9 @@ class _ActivityCardState extends State<ActivityCard> {
             _feedback,
             _reflectionController.text,
             calculateTotalGoal(),
-            calculateTotalBehavior());
+            calculateTotalBehavior(),
+            activityMap);
+
         var response = await post(
           Uri.parse(saveGoal),
           body: jsonData,
@@ -541,7 +555,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                 Visibility(
                                   visible: _selectedActivityType.isEmpty,
                                   child: Text(
-                                    'Select a physical activity to set and track your behavior.',
+                                    'Select a physical activity to set goals and track behavior.',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 20,
