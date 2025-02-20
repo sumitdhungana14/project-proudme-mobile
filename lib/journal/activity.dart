@@ -12,7 +12,10 @@ import 'package:project_proud_me/widgets/toast.dart';
 class ActivityCard extends StatefulWidget {
   final String userId;
 
-  const ActivityCard({required this.userId});
+  final Function swipeLeft;
+  final Function swipeRight;
+
+  const ActivityCard({required this.userId, required this.swipeLeft, required this.swipeRight});
 
   @override
   _ActivityCardState createState() => _ActivityCardState();
@@ -505,6 +508,23 @@ class _ActivityCardState extends State<ActivityCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        widget.swipeLeft();
+                                      },
+                                      icon: const Icon(Icons.arrow_left),
+                                      label: Text(
+                                        "Sleep",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w400,
+                                          color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.2,
+                                    ),
                                     const Icon(
                                       Icons.directions_run,
                                       color: secondaryColor,
@@ -542,6 +562,29 @@ class _ActivityCardState extends State<ActivityCard> {
                                       },
                                       child: const Icon(Icons.info),
                                     ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.2,
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        widget.swipeRight();
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            "Screen Time",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
+                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          const Icon(Icons.arrow_right),
+                                        ],
+                                      ),
+                                    )
                                   ],
                                 ),
                                 const Divider(),
