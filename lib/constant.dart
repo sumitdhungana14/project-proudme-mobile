@@ -55,10 +55,12 @@ const List<String> myJournalItems = [
 ];
 const secondaryColor = Color(0xfff5b342);
 
+const addNewKey = '+ Add New';
+
 Map<String, List<String>> activityTypes = {
-  'Strenuous': ['Running', 'Jogging', 'Football', 'Soccer', 'Basketball'],
-  'Moderate': ['Baseball', 'Tennis', 'Fast Walking', 'Volleyball', 'Badminton'],
-  'Mild': ['Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']
+  'Strenuous': [addNewKey, 'Running', 'Jogging', 'Football', 'Soccer', 'Basketball'],
+  'Moderate': [addNewKey, 'Baseball', 'Tennis', 'Fast Walking', 'Volleyball', 'Badminton'],
+  'Mild': [addNewKey, 'Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']
 };
 
 const List<String> activityList = [

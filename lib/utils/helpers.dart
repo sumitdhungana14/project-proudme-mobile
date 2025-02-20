@@ -57,16 +57,18 @@ String getPhysicalActivityBehaviorPayload(
 
 
     setActivities.forEach((item) {
-      int goalHours = int.tryParse(goalHourController[item]!.text) ?? 0;
-      int goalMinutes = int.tryParse(goalMinuteController[item]!.text) ?? 0;
+      if (item != addNewKey) {
+        int goalHours = int.tryParse(goalHourController[item]!.text) ?? 0;
+        int goalMinutes = int.tryParse(goalMinuteController[item]!.text) ?? 0;
 
-      int behaviorHours = int.tryParse(behaviorHourController[item]!.text) ?? 0;
-      int behaviorMinutes = int.tryParse(behaviorMinuteController[item]!.text) ?? 0;
+        int behaviorHours = int.tryParse(behaviorHourController[item]!.text) ?? 0;
+        int behaviorMinutes = int.tryParse(behaviorMinuteController[item]!.text) ?? 0;
 
-      activitiesMap[item] = {
-        'goal': {'hours': goalHours, 'minutes': goalMinutes},
-        'behavior': {'hours': behaviorHours, 'minutes': behaviorMinutes},
-      };
+        activitiesMap[item] = {
+          'goal': {'hours': goalHours, 'minutes': goalMinutes},
+          'behavior': {'hours': behaviorHours, 'minutes': behaviorMinutes},
+        };
+      }
     });
     
     activities[key] = activitiesMap;
