@@ -516,14 +516,14 @@ class _ActivityCardState extends State<ActivityCard> {
                                       label: Text(
                                         "Sleep",
                                         style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w400,
                                           color: Theme.of(context).primaryColor.withOpacity(0.9),
                                         ),
                                       ),
                                     ),
                                     SizedBox(
-                                      width: MediaQuery.of(context).size.width * 0.2,
+                                      width: MediaQuery.of(context).size.width * 0.05,
                                     ),
                                     const Icon(
                                       Icons.directions_run,
@@ -563,7 +563,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                       child: const Icon(Icons.info),
                                     ),
                                     SizedBox(
-                                      width: MediaQuery.of(context).size.width * 0.2,
+                                      width: MediaQuery.of(context).size.width * 0.05,
                                     ),
                                     TextButton(
                                       onPressed: () {
@@ -575,7 +575,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                           Text(
                                             "Screen Time",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.w400,
                                               color: Theme.of(context).primaryColor.withOpacity(0.9),
                                             ),
