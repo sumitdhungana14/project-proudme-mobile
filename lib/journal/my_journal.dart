@@ -107,7 +107,12 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                               swiperController.setCardIndex(1);
                             },);
                           case 1:
-                            return ScreenTimeCard(userId: _userId,);
+                            return ScreenTimeCard(userId: _userId, swipeLeft: () {
+                              swiperController.setCardIndex(0);
+                            },
+                            swipeRight: () {
+                              swiperController.setCardIndex(2);
+                            });
                           case 2:
                             return FruitsVegetablesCard(
                               userId: _userId,

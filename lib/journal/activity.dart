@@ -413,10 +413,12 @@ class _ActivityCardState extends State<ActivityCard> {
     });
 
     try {
-      String chatPayload = getChatbotPayloadForPhysicalActivity(
+      String chatPayload = getChatbotPayloadFor(
           int.parse(calculateTotalGoal()),
           int.parse(calculateTotalBehavior()),
-          _reflectionController.text);
+          _reflectionController.text,
+          'Physical Activity',
+          recommendedPhysicalActivityValue);
       var chatResponse = await post(
         Uri.parse(getChatReply),
         body: chatPayload,
@@ -479,6 +481,9 @@ class _ActivityCardState extends State<ActivityCard> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isTablet = screenWidth > 600; 
+
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : Container(
@@ -508,20 +513,23 @@ class _ActivityCardState extends State<ActivityCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    TextButton.icon(
-                                      onPressed: () {
-                                        widget.swipeLeft();
-                                      },
-                                      icon: const Icon(Icons.arrow_left),
-                                      label: Text(
-                                        "Sleep",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          color: Theme.of(context).primaryColor.withOpacity(0.9),
-                                        ),
-                                      ),
-                                    ),
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            widget.swipeLeft();
+                                          },
+                                          icon: const Icon(Icons.arrow_left),
+                                          label: Text(
+                                            "Sleep",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                            ),
+                                          ),
+                                        )),
                                     SizedBox(
                                       width: MediaQuery.of(context).size.width * 0.05,
                                     ),
@@ -565,26 +573,30 @@ class _ActivityCardState extends State<ActivityCard> {
                                     SizedBox(
                                       width: MediaQuery.of(context).size.width * 0.05,
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        widget.swipeRight();
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            "Screen Time",
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
-                                            ),
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton(
+                                          onPressed: () {
+                                            widget.swipeRight();
+                                          },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Screen Time",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Icon(Icons.arrow_right),
+                                            ],
                                           ),
-                                          const SizedBox(width: 5),
-                                          const Icon(Icons.arrow_right),
-                                        ],
-                                      ),
-                                    )
+                                        )
+                                      )
                                   ],
                                 ),
                                 const Divider(),
@@ -672,7 +684,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                   ),
                                 ),
                                 Visibility(
-                                  visible: _selectedActivityType.isNotEmpty,
+                                  visible: _selectedActivityType.isNotEmpty || _feedback.isNotEmpty,
                                   child: Container(
                                     padding: const EdgeInsets.all(16.0),
                                     child: Column(
@@ -988,7 +1000,7 @@ class _ActivityCardState extends State<ActivityCard> {
                         ),
                       )),
                       Visibility(
-                        visible: _selectedActivityType.isNotEmpty,
+                        visible: _selectedActivityType.isNotEmpty || _feedback.isNotEmpty,
                         child: Expanded(
                             flex: 1,
                             child: Column(

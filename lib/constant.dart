@@ -63,6 +63,11 @@ Map<String, List<String>> activityTypes = {
   'Mild': [addNewKey, 'Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']
 };
 
+Map<String, List<String>> screenTimeTypes = {
+  'Non-Academic': [addNewKey, 'Video Games', 'Looking at Photos', 'Video Chatting', 'Watching TV', 'Watching Movies'],
+  'Academic': [addNewKey, 'Online Learning', 'Homework', 'Other Academic Work'],
+};
+
 const List<String> activityList = [
   'Running',
   'Jogging',

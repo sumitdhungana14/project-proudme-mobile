@@ -13,7 +13,10 @@ import 'package:project_proud_me/widgets/toast.dart';
 class ScreenTimeCard extends StatefulWidget {
   final String userId;
 
-  const ScreenTimeCard({required this.userId});
+  final Function swipeLeft;
+  final Function swipeRight;
+
+  const ScreenTimeCard({required this.userId, required this.swipeRight, required this.swipeLeft});
 
   @override
   _ScreenTimeCardState createState() => _ScreenTimeCardState();
@@ -25,6 +28,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     items.
   */
 
+  List<String> _dependentItems = [];
+  String _selectedScreenTimeCategory = '';
   String _selectedScreenTimeType = '';
 
   late Map<String, TextEditingController> _goalHourControllers;
@@ -41,7 +46,10 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
   bool _isLoading = false;
   String _feedback = '';
 
-  void _fetchDataAndSetControllers() async {
+  late Map<String, List<String>> screenTimeMap;
+  late Map<String, dynamic> _screentimes;
+
+  Future<void> _fetchData() async {
     setState(() {
       _isLoading = true;
     });
@@ -57,19 +65,14 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
         if (responseBody.isNotEmpty) {
           var screenTimeData = responseBody.first as Map<String, dynamic>;
           _reflectionController.text = screenTimeData['reflection'];
-          Map<String, dynamic> activities = screenTimeData['screentime'];
-          screenTimeType.forEach((item) {
-            _goalHourControllers[item]!.text =
-                activities[item]['goal']['hours'].toString();
-            _goalMinuteControllers[item]!.text =
-                activities[item]['goal']['minutes'].toString();
-            _behaviorHourControllers[item]!.text =
-                activities[item]['behavior']['hours'].toString();
-            _behaviorMinuteControllers[item]!.text =
-                activities[item]['behavior']['minutes'].toString();
-          });
           setState(() {
+            _screentimes = screenTimeData['screentime'];
             _feedback = screenTimeData['feedback'];
+          });
+        } else {
+          setState(() {
+            _screentimes = {};
+            _feedback = '';
           });
         }
       }
@@ -80,6 +83,13 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
         _isLoading = false;
       });
     }
+
+    _initScreenTimeMap();
+    _initGoalHourControllers();
+    _initGoalMinuteControllers();
+    _initBehaviorHourControllers();
+    _initBehaviorMinuteControllers();
+    _setControllers();
   }
 
   void save() async {
@@ -88,10 +98,12 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     });
 
     try {
-      String chatPayload = getChatbotPayloadForScreenTime(
+      String chatPayload = getChatbotPayloadFor(
           int.parse(calculateTotalGoal()),
           int.parse(calculateTotalBehavior()),
-          _reflectionController.text);
+          _reflectionController.text,
+          'Screen Time',
+          recommendedScreenTimeValue);
       var chatResponse = await post(
         Uri.parse(getChatReply),
         body: chatPayload,
@@ -111,7 +123,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
             _feedback,
             _reflectionController.text,
             calculateTotalGoal(),
-            calculateTotalBehavior());
+            calculateTotalBehavior(),
+            screenTimeMap);
         var response = await post(
           Uri.parse(saveGoal),
           body: jsonData,
@@ -127,6 +140,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
 
           setState(() {
             _selectedScreenTimeType = '';
+            _dependentItems = [];
           });
           showCustomToast(context, 'Screen time has been saved successfully.',
               Theme.of(context).primaryColor);
@@ -140,6 +154,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     } finally {
       setState(() {
         _isLoading = false;
+        _selectedScreenTimeType = '';
       });
     }
   }
@@ -313,50 +328,172 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     });
   }
 
+  void addNewScreenTime(String? newScreenTime) {
+    if (_selectedScreenTimeCategory != '' && !screenTimeMap[_selectedScreenTimeCategory]!.contains(newScreenTime)) {
+      _selectedScreenTimeType = newScreenTime!;
+      screenTimeMap[_selectedScreenTimeCategory]!.add(_selectedScreenTimeType);
+      showCustomToast(context, 'New Screen Time has been added.', Theme.of(context).primaryColor);
+      if (!_goalHourControllers.keys.contains(_selectedScreenTimeType)) {
+        _goalHourControllers[newScreenTime] = TextEditingController();
+        _goalHourControllers[newScreenTime]!.text = 0.toString();
+        _goalMinuteControllers[newScreenTime] = TextEditingController();
+        _goalMinuteControllers[newScreenTime]!.text = 0.toString();
+        _behaviorHourControllers[newScreenTime] = TextEditingController();
+        _behaviorHourControllers[newScreenTime]!.text = 0.toString();
+        _behaviorMinuteControllers[newScreenTime] = TextEditingController();
+        _behaviorMinuteControllers[newScreenTime]!.text = 0.toString();
+      }
+      setState(() {
+        _goalHourController =_goalHourControllers[_selectedScreenTimeType]!;
+        _goalMinuteController =_goalMinuteControllers[_selectedScreenTimeType]!;
+        _behaviorHourController =_behaviorHourControllers[_selectedScreenTimeType]!;
+        _behaviorMinuteController =_behaviorMinuteControllers[_selectedScreenTimeType]!;
+        });
+    }
+  }
+
+  void _initScreenTimeMap() {
+    screenTimeMap =  Map<String, List<String>>.from(screenTimeTypes);
+
+    _screentimes.keys.forEach((key) {
+      Map<String, dynamic> savedActivitiesForCurCategory = _screentimes[key];
+
+      List<String> typesSavedToServer = savedActivitiesForCurCategory.keys.toList();
+      List<String> locallySavedTypes = screenTimeMap[key]!;
+
+      for (var type in typesSavedToServer) {
+        if (!locallySavedTypes.contains(type)) {
+          locallySavedTypes.add(type);
+        }
+      }
+    });
+  }
+
+
   @override
   void initState() {
     super.initState();
-    _initGoalHourControllers();
-    _initGoalMinuteControllers();
-    _initBehaviorHourControllers();
-    _initBehaviorMinuteControllers();
-    _fetchDataAndSetControllers();
+    _fetchData();
   }
 
   void _initGoalHourControllers() {
     _goalHourControllers = {};
-    screenTimeType.forEach((type) {
-      _goalHourControllers[type] = TextEditingController();
-      _goalHourControllers[type]!.text = 0.toString();
+    screenTimeMap.values.forEach((screentimes) {
+      screentimes.forEach((type) {
+        if (type != addNewKey) {
+          _goalHourControllers[type] = TextEditingController();
+          _goalHourControllers[type]!.text = 0.toString();
+        }
+      });
     });
   }
 
   void _initGoalMinuteControllers() {
     _goalMinuteControllers = {};
-    screenTimeType.forEach((type) {
-      _goalMinuteControllers[type] = TextEditingController();
-      _goalMinuteControllers[type]!.text = 0.toString();
+     screenTimeMap.values.forEach((screentimes) {
+      screentimes.forEach((type) {
+        if (type != addNewKey) {
+          _goalMinuteControllers[type] = TextEditingController();
+          _goalMinuteControllers[type]!.text = 0.toString();
+        }
+      });
     });
   }
 
   void _initBehaviorHourControllers() {
     _behaviorHourControllers = {};
-    screenTimeType.forEach((type) {
-      _behaviorHourControllers[type] = TextEditingController();
-      _behaviorHourControllers[type]!.text = 0.toString();
+    screenTimeMap.values.forEach((screentimes) {
+      screentimes.forEach((type) {
+        if (type != addNewKey) {
+          _behaviorHourControllers[type] = TextEditingController();
+          _behaviorHourControllers[type]!.text = 0.toString();
+        }
+      });
     });
   }
 
   void _initBehaviorMinuteControllers() {
     _behaviorMinuteControllers = {};
-    screenTimeType.forEach((type) {
-      _behaviorMinuteControllers[type] = TextEditingController();
-      _behaviorMinuteControllers[type]!.text = 0.toString();
+    screenTimeMap.values.forEach((screentimes) {
+      screentimes.forEach((type) {
+        if (type != addNewKey) {
+          _behaviorMinuteControllers[type] = TextEditingController();
+          _behaviorMinuteControllers[type]!.text = 0.toString();
+        }
+      });
     });
+  }
+
+  void _setControllers() {
+    for (String key in screenTimeMap.keys) {
+      List<String> types = screenTimeMap[key]!;
+
+      for (String item in types) {
+       if (_screentimes[key] != null && item != addNewKey) {
+          _goalHourControllers[item]!.text = _screentimes[key][item]['goal']['hours'].toString();
+          _goalMinuteControllers[item]!.text = _screentimes[key][item]!['goal']['minutes'].toString();
+          _behaviorHourControllers[item]!.text = _screentimes[key][item]!['behavior']['hours'].toString();
+          _behaviorMinuteControllers[item]!.text = _screentimes[key][item]!['behavior']['minutes'].toString();
+       }
+      }
+    }
+  }
+
+  void _showAddNewDialog() {
+    TextEditingController newItemController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Add New Item"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: 100,
+            child: Column(
+              children: [
+                TextField(
+                  controller: newItemController,
+                  decoration: const InputDecoration(hintText: "Enter new screen time."),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                   _selectedScreenTimeType = screenTimeMap[_selectedScreenTimeCategory]!.last;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                String newItem = newItemController.text.trim();
+                if (newItem.isNotEmpty) {
+                  addNewScreenTime(newItem);
+                  Navigator.pop(context);
+                }
+              },
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all<Color>(
+                const Color(0xfff5b342)),
+              ),
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isTablet = screenWidth > 600; 
+
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : Container(
@@ -386,6 +523,26 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                     Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            widget.swipeLeft();
+                                          },
+                                          icon: const Icon(Icons.arrow_left),
+                                          label: Text(
+                                            "Physical Activity",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                            ),
+                                          ),
+                                        )),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
                                     const Icon(
                                       Icons.desktop_windows_outlined,
                                       color: secondaryColor,
@@ -427,15 +584,46 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                       },
                                       child: const Icon(Icons.info),
                                     ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton(
+                                          onPressed: () {
+                                            widget.swipeRight();
+                                          },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Fruits & Vegetables",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Icon(Icons.arrow_right),
+                                            ],
+                                          ),
+                                        )
+                                    )
                                   ],
                                 ),
                                 const Divider(),
                                 DropdownButtonFormField<String>(
                                   decoration: const InputDecoration(
-                                      labelText: 'Select screen time type.'),
+                                      labelText: 'Select screen time category.'),
                                   onChanged: (value) {
                                     setState(() {
-                                      _selectedScreenTimeType = value!;
+                                      _selectedScreenTimeCategory = value!;
+                                      _selectedScreenTimeType =
+                                          screenTimeMap[value!]!.last;
+                                      _dependentItems =
+                                          screenTimeMap[value!] ?? [];
                                       _goalHourController =
                                           _goalHourControllers[
                                               _selectedScreenTimeType]!;
@@ -450,7 +638,41 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                               _selectedScreenTimeType]!;
                                     });
                                   },
-                                  items: screenTimeType
+                                  items: screenTimeMap.keys
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                                DropdownButtonFormField<String>(
+                                  decoration: const InputDecoration(
+                                      labelText: 'Select screen time type.'),
+                                  onChanged: (value) {
+                                    _selectedScreenTimeType = value!;
+                                    setState(() {
+                                      if (_selectedScreenTimeType != addNewKey) {
+                                        _goalHourController =
+                                          _goalHourControllers[
+                                              _selectedScreenTimeType]!;
+                                      _goalMinuteController =
+                                          _goalMinuteControllers[
+                                              _selectedScreenTimeType]!;
+                                      _behaviorHourController =
+                                          _behaviorHourControllers[
+                                              _selectedScreenTimeType]!;
+                                      _behaviorMinuteController =
+                                          _behaviorMinuteControllers[
+                                              _selectedScreenTimeType]!;
+                                      } else {
+                                        _showAddNewDialog();
+                                      }
+                                    });
+                                  },
+                                  value: _selectedScreenTimeType,
+                                  items: _dependentItems
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -462,7 +684,27 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                 const SizedBox(
                                   height: 20,
                                 ),
-                                Text(
+                                Visibility(
+                                  visible: _selectedScreenTimeType.isEmpty,
+                                  child: Text(
+                                    'Select a screen time to set goals and track behavior.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontFamily,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: _selectedScreenTimeType.isNotEmpty || _feedback.isNotEmpty,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                                                        Text(
                                   'Set My Goal',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -472,7 +714,10 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
-                                Row(
+                                Center(
+                                  child: 
+                                    Container(width: MediaQuery.of(context).size.width * 0.5,
+                                            child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
@@ -516,7 +761,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                       ),
                                     ),
                                   ],
-                                ),
+                                ))),
+                                Center(
+                                  child: 
+                                    Container(width: MediaQuery.of(context).size.width * 0.5,
+                                            child:
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -561,7 +810,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                       ),
                                     ),
                                   ],
-                                ),
+                                ))),
                                 const SizedBox(
                                   height: 10,
                                 ),
@@ -589,6 +838,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
+                                Center(
+                                  child: 
+                                    Container(
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                            child:
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -633,7 +887,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                       ),
                                     ),
                                   ],
-                                ),
+                                ))),
+                                Center(
+                                  child: 
+                                    Container(width: MediaQuery.of(context).size.width * 0.5,
+                                            child:
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -678,7 +936,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                       ),
                                     ),
                                   ],
-                                ),
+                                ))),
                                 const SizedBox(
                                   height: 10,
                                 ),
@@ -736,41 +994,52 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                     fontFamily: fontFamily,
                                   ),
                                 ),
+                                ]))),
                               ],
                             ),
                           ),
                         ),
                       )),
-                  const Divider(
-                    thickness: 1,
-                    color: Colors.black,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 5,
+                      Visibility(
+                        visible: _selectedScreenTimeType.isNotEmpty || _feedback.isNotEmpty,
+                        child: Expanded(
+                            flex: 1,
+                            child: Column(
+                              children: [
+                                const Divider(
+                                thickness: 1,
+                                color: Colors.black,
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    const SizedBox(
+                                      height: 5,
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        save();
+                                      },
+                                      style: ButtonStyle(
+                                        backgroundColor: WidgetStateProperty.all<Color>(
+                                            const Color(0xfff5b342)),
+                                      ),
+                                      child: const Text(
+                                        'Save',
+                                        style: TextStyle(
+                                            fontFamily: fontFamily,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ]
+                            )
+                          )
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            save();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all<Color>(
-                                const Color(0xfff5b342)),
-                          ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
-                                fontFamily: fontFamily,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ));
