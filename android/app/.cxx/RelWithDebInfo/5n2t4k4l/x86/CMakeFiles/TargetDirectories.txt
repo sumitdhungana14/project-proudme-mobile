@@ -1,0 +1,2 @@
+/Users/sumitdhungana14/projects/project-proudme-mobile/android/app/.cxx/RelWithDebInfo/5n2t4k4l/x86/CMakeFiles/rebuild_cache.dir
+/Users/sumitdhungana14/projects/project-proudme-mobile/android/app/.cxx/RelWithDebInfo/5n2t4k4l/x86/CMakeFiles/edit_cache.dir
