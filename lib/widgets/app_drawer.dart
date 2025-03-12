@@ -54,18 +54,6 @@ class _MyDrawerState extends State<MyDrawer> {
           ),
           ListTile(
             title: Text(
-              'Project Team',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontFamily
-              ),
-            ),
-            onTap: () {
-            },
-          ),
-          ListTile(
-            title: Text(
               'My Journal',
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
@@ -82,48 +70,12 @@ class _MyDrawerState extends State<MyDrawer> {
           ),
           ListTile(
             title: Text(
-              'Behaviour Charts',
+              'Daily Reports',
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
                 fontFamily: fontFamily
               )
-            ),
-            onTap: () {
-            },
-          ),
-          ListTile(
-            title: Text(
-              'ProudMe PE',
-              style: TextStyle( 
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontFamily
-              )            
-            ),
-            onTap: () {
-            },
-          ),
-          ListTile(
-            title: Text(
-              'ProudMe Cafeteria',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontFamily
-              )            
-            ),
-            onTap: () {
-            },
-          ),
-          ListTile(
-            title: Text(
-              'ProudMe Tech',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontFamily
-              )            
             ),
             onTap: () {
             },
