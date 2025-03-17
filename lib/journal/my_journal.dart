@@ -114,12 +114,22 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                               swiperController.setCardIndex(2);
                             });
                           case 2:
-                            return FruitsVegetablesCard(
-                              userId: _userId,
+                            return FruitsVegetablesCard(userId: _userId, swipeLeft: () {
+                              swiperController.setCardIndex(1);
+                            },
+                            swipeRight: () {
+                              swiperController.setCardIndex(3);
+                            }
                             );
                           case 3:
                             return SleepCard(
                               userId: _userId,
+                              swipeLeft: () {
+                                swiperController.setCardIndex(2);
+                              },
+                              swipeRight: () {
+                                swiperController.setCardIndex(0);
+                              }
                             );
                           default:
                             throw Exception();

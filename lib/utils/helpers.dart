@@ -160,7 +160,8 @@ String getEatingBehaviorPayload(
     String feedback,
     String reflection,
     String totalGoal,
-    String totalBehavior) {
+    String totalBehavior,
+    Map<String, List<String>> eatMap) {
   String date = getNowInFormat(dateFormat);
   String dateToday = getNowInFormat('yyyy-MM-ddTHH:mm:ss.SSSZ');
 
@@ -169,14 +170,24 @@ String getEatingBehaviorPayload(
 
   Map<String, dynamic> eating = {};
 
-  eatingType.forEach((item) {
-    int goal = int.tryParse(goalController[item]!.text) ?? 0;
-    int behavior = int.tryParse(behaviorController[item]!.text) ?? 0;
+  eatMap.keys.forEach((key) {
+    List<String> setEats = eatMap[key]!;
+    Map<String, dynamic> eatsMap = {};
 
-    eating[item] = {
-      'goal': goal,
-      'behavior': behavior,
-    };
+    setEats.forEach((item) {
+      if (item != addNewKey) {
+        int goalHours = int.tryParse(goalController[item]!.text) ?? 0;
+
+        int behaviorHours = int.tryParse(behaviorController[item]!.text) ?? 0;
+
+        eatsMap[item] = {
+          'goal': goalHours,
+          'behavior': behaviorHours,
+        };
+      }
+    });
+
+    eating[key] = eatsMap;
   });
 
   bool goalStatus = behaviorValue >= goalValue;
@@ -189,7 +200,7 @@ String getEatingBehaviorPayload(
     'date': date,
     'goalStatus': goalStatus,
     'user': userId,
-    'recommendedValue': recommendedScreenTimeValue,
+    'recommendedValue': recommendedEatingValue,
     'goalType': 'eating',
     'dateToday': dateToday,
     'servings': eating
@@ -355,23 +366,20 @@ String getChatbotPayloadFor(
 }
 
 String getChatbotPayloadForEating(
-    String goal, String behavior, String reflection) {
-  double percentageAchieved = (int.parse(behavior) / int.parse(goal)) * 100;
-
-  double percentageOfRecommendedGoal =
-      (int.parse(behavior) / recommendedEatingValue) * 100;
-
-  String content = "Health goal type: eating, "
-      "Recommended value: $recommendedEatingValue, "
-      "Actual Goal Value: $goal, "
-      "Actual behavior value achieved: $behavior}, "
-      "percentage of actual goal achieved: ${percentageAchieved.toStringAsFixed(2)}%, "
-      "percentage of recommended goal achieved: ${percentageOfRecommendedGoal.toStringAsFixed(2)}%, "
-      "Reflection: $reflection.";
+    int goal, int behavior, String reflection) {
+  String systemContent = "Provide feedback based on the user's actual behavior compared to both their set personal goals and default recommended value.";
+  String userContent = "Goal Type: Eating, "
+      "Recommended value by default: $recommendedEatingValue servings, "
+      "Personal goal that student set: $goal servings, "
+      "Goal that student achieved: $behavior servings, "
+      "Reflection: $reflection, "
+      "Personal goal met: ${behavior >= goal}, "
+      "Recommended goal met: ${behavior >= recommendedEatingValue}";
 
   Map<String, List<Map<String, String>>> payload = {
     'prompt': [
-      {'role': 'system', 'content': content}
+      {'role': 'system', 'content': systemContent},
+      {'role': 'system', 'content': userContent}
     ]
   };
 

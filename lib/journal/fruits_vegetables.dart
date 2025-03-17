@@ -13,8 +13,10 @@ import 'package:project_proud_me/widgets/toast.dart';
 
 class FruitsVegetablesCard extends StatefulWidget {
   final String userId;
+  final Function swipeLeft;
+  final Function swipeRight;
 
-  const FruitsVegetablesCard({required this.userId});
+  const FruitsVegetablesCard({required this.userId, required this.swipeLeft, required this.swipeRight});
 
   @override
   _FruitsVegetablesCardState createState() => _FruitsVegetablesCardState();
@@ -22,16 +24,22 @@ class FruitsVegetablesCard extends StatefulWidget {
 
 class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     with SingleTickerProviderStateMixin {
+    
+    String _selectedEatType = '';
+    List<String> _dependentItems = [];
+    String _selectedEatCategory = '';
+
   late Map<String, TextEditingController> _goalControllers;
   late Map<String, TextEditingController> _behaviorControllers;
-  late TabController _tabController;
 
   TextEditingController _goalController = TextEditingController();
   TextEditingController _behaviorController = TextEditingController();
   final TextEditingController _reflectionController = TextEditingController();
   bool _isLoading = false;
   String _feedback = '';
-  String _selectedEatingType = 'Fruits';
+
+  late Map<String, List<String>> eatMap;
+  late Map<String, dynamic> _eats;
 
   String calculateTotalGoal() {
     int total = 0;
@@ -58,7 +66,31 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     return total.toString();
   }
 
-    void _fetchDataAndSetControllers() async {
+    void addNewEat(String? newActivity) {
+    if (_selectedEatCategory != '' && !eatMap[_selectedEatCategory]!.contains(newActivity)) {
+      _selectedEatType = newActivity!;
+      eatMap[_selectedEatCategory]!.add(_selectedEatType);
+      showCustomToast(context, 'New Activity has been added.', Theme.of(context).primaryColor);
+      if (!_goalControllers.keys.contains(_selectedEatType)) {
+        _goalControllers[newActivity] = TextEditingController();
+        _goalControllers[newActivity]!.text = 0.toString();
+        _goalControllers[newActivity] = TextEditingController();
+        _goalControllers[newActivity]!.text = 0.toString();
+        _behaviorControllers[newActivity] = TextEditingController();
+        _behaviorControllers[newActivity]!.text = 0.toString();
+        _behaviorControllers[newActivity] = TextEditingController();
+        _behaviorControllers[newActivity]!.text = 0.toString();
+      }
+      setState(() {
+        _goalController =_goalControllers[_selectedEatType]!;
+        _goalController =_goalControllers[_selectedEatType]!;
+        _behaviorController =_behaviorControllers[_selectedEatType]!;
+        _behaviorController =_behaviorControllers[_selectedEatType]!;
+        });
+    }
+  }
+
+    void _fetchData() async {
     setState(() {
       _isLoading = true;
     });
@@ -73,17 +105,14 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
         List<dynamic> responseBody = json.decode(response.body);
         if (responseBody.isNotEmpty) {
           var activityData = responseBody.first as Map<String, dynamic>;
-          _reflectionController.text = activityData['reflection'];
-          Map<String, dynamic> eating = activityData['servings'];
-          eatingType.forEach((item) {
-            _goalControllers[item]!.text =
-                eating[item]['goal'].toString();
-            _behaviorControllers[item]!.text =
-                eating[item]['behavior'].toString();
-          });
+          _reflectionController.text = activityData['reflection'];      
           setState(() {
+            _eats = activityData['servings'];
             _feedback = activityData['feedback'];
           });
+        } else {
+          _eats = {};
+          _feedback = '';
         }
       }
     } catch (e) {
@@ -93,6 +122,11 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
         _isLoading = false;
       });
     }
+
+    _initEatMap();
+    _initGoalControllers();
+    _initBehaviorControllers();
+    _setControllers();
   }
 
   void save() async {
@@ -104,7 +138,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
       String totalGoal = calculateTotalGoal();
       String totalBehavior = calculateTotalBehavior();
       String chatPayload = getChatbotPayloadForEating(
-          totalGoal, totalBehavior, _reflectionController.text);
+          int.parse(totalGoal), int.parse(totalBehavior), _reflectionController.text);
       var chatResponse = await post(
         Uri.parse(getChatReply),
         body: chatPayload,
@@ -122,7 +156,8 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
             _feedback,
             _reflectionController.text,
             totalGoal,
-            totalBehavior);
+            totalBehavior,
+            eatMap);
         var response = await post(
           Uri.parse(saveGoal),
           body: jsonData,
@@ -136,6 +171,11 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
             headers: baseHttpHeader,
           );
 
+          setState(() {
+            _selectedEatType = '';
+            _dependentItems = [];
+          });
+
           showCustomToast(context, eatingSaved,
               Theme.of(context).primaryColor);
         } else if (response.statusCode == 400) {
@@ -148,29 +188,38 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     } finally {
       setState(() {
         _isLoading = false;
+        _selectedEatType = '';
       });
     }
   }
 
   void _initGoalControllers() {
     _goalControllers = {};
-    eatingType.forEach((type) {
-      _goalControllers[type] = TextEditingController();
-      _goalControllers[type]!.text = 0.toString();
+    eatMap.values.forEach((eats) {
+      eats.forEach((eat) {
+        if (eat != addNewKey) {
+          _goalControllers[eat] = TextEditingController();
+          _goalControllers[eat]!.text = 0.toString();
+        }
+      });
     });
   }
 
   void _initBehaviorControllers() {
     _behaviorControllers = {};
-    eatingType.forEach((type) {
-      _behaviorControllers[type] = TextEditingController();
-      _behaviorControllers[type]!.text = 0.toString();
+    eatMap.values.forEach((eats) {
+      eats.forEach((eat) {
+        if (eat != addNewKey) {
+          _behaviorControllers[eat] = TextEditingController();
+          _behaviorControllers[eat]!.text = 0.toString();
+        }
+      });
     });
   }
 
   void incrementGoalServing() {
     setState(() {
-      if (_selectedEatingType != '') {
+      if (_selectedEatType != '') {
         if (_goalController.text.isEmpty) {
           _goalController.text = 1.toString();
         } else {
@@ -183,7 +232,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
 
   void incrementBehaviorServing() {
     setState(() {
-      if (_selectedEatingType != '') {
+      if (_selectedEatType != '') {
         if (_behaviorController.text.isEmpty) {
           _behaviorController.text = 1.toString();
         } else {
@@ -196,7 +245,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
 
   void decrementGoalServing() {
     setState(() {
-      if (_selectedEatingType != '') {
+      if (_selectedEatType != '') {
         if (_goalController.text.isNotEmpty &&
             int.parse(_goalController.text) > 0) {
           _goalController.text =
@@ -208,7 +257,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
 
   void decrementBehaviorServing() {
     setState(() {
-      if (_selectedEatingType != '') {
+      if (_selectedEatType != '') {
         if (_behaviorController.text.isNotEmpty &&
             int.parse(_behaviorController.text) > 0) {
           _behaviorController.text =
@@ -218,25 +267,97 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: eatingType.length, vsync: this);
-    _initGoalControllers();
-    _initBehaviorControllers();
-    _goalController = _goalControllers[_selectedEatingType]!;
-    _behaviorController = _behaviorControllers[_selectedEatingType]!;
-    _fetchDataAndSetControllers();
+    void _initEatMap() {
+    eatMap =  Map<String, List<String>>.from(eatTypes);
+
+    _eats.keys.forEach((key) {
+      Map<String, dynamic> savedActivitiesForCurCategory = _eats[key];
+
+      List<String> typesSavedToServer = savedActivitiesForCurCategory.keys.toList();
+      List<String> locallySavedTypes = eatMap[key]!;
+
+      for (var type in typesSavedToServer) {
+        if (!locallySavedTypes.contains(type)) {
+          locallySavedTypes.add(type);
+        }
+      }
+    });
+  }
+
+    void _setControllers() {
+    for (String key in eatMap.keys) {
+      List<String> types = eatMap[key]!;
+
+      for (String item in types) {
+       if (_eats[key] != null && item != addNewKey) {
+          _goalControllers[item]!.text = _eats[key][item]['goal'].toString();
+          _behaviorControllers[item]!.text = _eats[key][item]!['behavior'].toString();
+       }
+      }
+    }
+  }
+
+   void _showAddNewDialog() {
+    TextEditingController newItemController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Add New Item"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: 100,
+            child: Column(
+              children: [
+                TextField(
+                  controller: newItemController,
+                  decoration: const InputDecoration(hintText: "Enter new fruits or vegetables."),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                   _selectedEatType = eatMap[_selectedEatCategory]!.last;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                String newItem = newItemController.text.trim();
+                if (newItem.isNotEmpty) {
+                  addNewEat(newItem);
+                  Navigator.pop(context);
+                }
+              },
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all<Color>(
+                const Color(0xfff5b342)),
+              ),
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _fetchData();
   }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isTablet = screenWidth > 600; 
+    
     return _isLoading
         ? const Center(
             child: CircularProgressIndicator(),
@@ -268,6 +389,27 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            widget.swipeLeft();
+                                          },
+                                          icon: const Icon(Icons.arrow_left),
+                                          label: Text(
+                                            "Screen Time",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                            ),
+                                          ),
+                                        )
+                                      ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
                                     SvgPicture.asset(
                                       appleIconPath,
                                       width: 20,
@@ -311,29 +453,112 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                       },
                                       child: const Icon(Icons.info),
                                     ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
+                                     Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton(
+                                          onPressed: () {
+                                            widget.swipeRight();
+                                          },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Sleep",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Icon(Icons.arrow_right),
+                                            ],
+                                          ),
+                                        )
+                                      )
                                   ],
                                 ),
                                 const Divider(),
-                                TabBar(
-                                  controller: _tabController,
-                                  tabs: eatingType.map((String tab) {
-                                    return Tab(text: tab);
-                                  }).toList(),
-                                  onTap: (index) {
+                                DropdownButtonFormField<String>(
+                                  decoration: const InputDecoration(
+                                      labelText: 'Select eating category.'),
+                                  onChanged: (value) {
                                     setState(() {
-                                      _selectedEatingType = eatingType[index];
-                                      _goalController = _goalControllers[
-                                          _selectedEatingType]!;
-                                      _behaviorController =
-                                          _behaviorControllers[
-                                              _selectedEatingType]!;
+                                      _selectedEatCategory = value!;
+                                      _selectedEatType =
+                                          eatMap[value]!.last;
+                                      _dependentItems =
+                                          eatMap[value] ?? [];
+                                      _goalController = _goalControllers[_selectedEatType]!;
+                                      _behaviorController = _behaviorControllers[_selectedEatType]!;
                                     });
                                   },
+                                  items: eatMap.keys
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                                DropdownButtonFormField<String>(
+                                  decoration: const InputDecoration(
+                                      labelText: 'Select eating type.'),
+                                  onChanged: (value) {
+                                    _selectedEatType = value!;
+                                    setState(() {
+                                      if (_selectedEatType != addNewKey) {
+                                        _goalController =
+                                          _goalControllers[
+                                              _selectedEatType]!;
+                                      _behaviorController =
+                                          _behaviorControllers[
+                                              _selectedEatType]!;
+
+                                      } else {
+                                        _showAddNewDialog();
+                                      }
+                                    });
+                                  },
+                                  value: _selectedEatType,
+                                  items: _dependentItems
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
                                 ),
                                 const SizedBox(
                                   height: 20,
                                 ),
-                                Text(
+                                 Visibility(
+                                  visible: _selectedEatType.isEmpty,
+                                  child: Text(
+                                    'Select fruits/vegetables to set goals and track behavior.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontFamily,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: _selectedEatType.isNotEmpty || _feedback.isNotEmpty,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
                                   'Set My Goal',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -515,41 +740,45 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                     fontFamily: fontFamily,
                                   ),
                                 ),
+                                      ]))),
                               ],
                             ),
                           ),
                         ),
                       )),
-                  const Divider(
-                    thickness: 1,
-                    color: Colors.black,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            save();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all<Color>(
-                                const Color(0xfff5b342)),
+                  Visibility(
+                        visible: _selectedEatType.isNotEmpty || _feedback.isNotEmpty,
+                        child: Expanded(
+                            flex: 1,
+                            child: Column(
+                              children: [
+                                const Divider(
+                                  thickness: 1,
+                                  color: Colors.black,
+                                ),
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    save();
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all<Color>(
+                                        const Color(0xfff5b342)),
+                                  ),
+                                  child: const Text(
+                                    'Save',
+                                    style: TextStyle(
+                                        fontFamily: fontFamily,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
-                                fontFamily: fontFamily,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
                 ],
               ),
             ));

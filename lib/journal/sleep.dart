@@ -12,8 +12,10 @@ import 'package:project_proud_me/widgets/toast.dart';
 class SleepCard extends StatefulWidget {
   //TODO: Change the API to receive goalValue and behaviorValue in minutes not hours (double)
   final String userId;
+  final Function swipeLeft;
+  final Function swipeRight;
 
-  const SleepCard({required this.userId});
+  const SleepCard({required this.userId, required this.swipeLeft, required this.swipeRight});
 
   @override
   _SleepCardState createState() => _SleepCardState();
@@ -229,6 +231,9 @@ class _SleepCardState extends State<SleepCard> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isTablet = screenWidth > 600; 
+
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : Container(
@@ -258,6 +263,27 @@ class _SleepCardState extends State<SleepCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            widget.swipeLeft();
+                                          },
+                                          icon: const Icon(Icons.arrow_left),
+                                          label: Text(
+                                            "Fruits & Vegetables",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                            ),
+                                          ),
+                                        )
+                                      ),
+                                       SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
                                     Transform.rotate(
                                       angle: 0.7,
                                       child: const Icon(
@@ -302,6 +328,33 @@ class _SleepCardState extends State<SleepCard> {
                                       },
                                       child: const Icon(Icons.info),
                                     ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width * 0.05,
+                                    ),
+                                    Visibility(
+                                      visible: isTablet,
+                                      child:
+                                        TextButton(
+                                          onPressed: () {
+                                            widget.swipeRight();
+                                          },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Physical Activity",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Theme.of(context).primaryColor.withOpacity(0.9),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Icon(Icons.arrow_right),
+                                            ],
+                                          ),
+                                        )
+                                      )
                                   ],
                                 ),
                                 const Divider(),

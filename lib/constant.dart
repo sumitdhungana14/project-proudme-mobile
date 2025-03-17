@@ -68,6 +68,11 @@ Map<String, List<String>> screenTimeTypes = {
   'Academic': [addNewKey, 'Online Learning', 'Homework', 'Other Academic Work'],
 };
 
+Map<String, List<String>> eatTypes = {
+  'Fruits': [addNewKey, 'Apples', 'Bananas', 'Oranges', 'Strawberries', 'Grapes', 'Watermelon'],
+  'Vegetables': [addNewKey, 'Carrots', 'Brocolli', 'Spinach', 'Potatoes', 'Tomatoes'],
+};
+
 const List<String> activityList = [
   'Running',
   'Jogging',
