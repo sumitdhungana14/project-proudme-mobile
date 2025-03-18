@@ -24,23 +24,8 @@ class IntroductionFooterWidget extends StatelessWidget {
               ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,  // Centers horizontally
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    String mailUrl = 'mailto:pklab@lsu.edu';
-                    try {
-                      await _launchUrl(Uri.parse(mailUrl));
-                    } catch (e) {
-                      //Log error
-                    }
-                  },
-                  icon: const Icon(Icons.email),
-                  label: const Text('pklab@lsu.edu', style: TextStyle(fontSize: 25),),
-                ),
-              ),
-              const SizedBox(width: 20),
               Center(
                 child: ElevatedButton.icon(
                   onPressed: () async {

@@ -134,6 +134,72 @@ class _IntroductionState extends State<Introduction> {
             children: [
               IntroductionImageSection(),
               Container(
+                padding: const EdgeInsets.all(16.0), 
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _isSignedIn ?
+                  [
+                    const Text(
+                    "Go to Journal screen to set goals and track your behavior.",
+                    style: TextStyle(
+                      fontSize: 25.0,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
+                  ElevatedButton(
+                  onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyJournalScreen()),
+                      );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      const Color(0xfff5b342)
+                    ),
+                  ),
+                  child: const Text(
+                    'Go to My Journal',
+                    style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25
+                      ),
+                    ),
+                  )] : [
+                    const Text(
+                    "Login to set goals and track your behavior.",
+                    style: TextStyle(
+                      fontSize: 25.0,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
+                    ElevatedButton (
+                    onPressed: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
+                      );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      const Color(0xfff5b342)
+                    ),
+                  ),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25
+                      ),
+                    ),
+                  )
+                  ],
+
+              ),),
+              
+              Container(
                 padding: const EdgeInsets.all(16.0),
                 child: const Text(
                   introductionStartingText,
@@ -148,69 +214,6 @@ class _IntroductionState extends State<Introduction> {
                 child: const IntroductionFooterWidget(regularText: introductionEndingText1)
               ),
               const SizedBox(height: 10,),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: _isSignedIn ?
-                [
-                  const Text(
-                  "Go to Journal screen to set goals and track your behavior.",
-                  style: TextStyle(
-                    fontSize: 25.0,
-                    fontFamily: fontFamily,
-                  ),
-                ),
-                ElevatedButton(
-                onPressed: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MyJournalScreen()),
-                    );
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(
-                    const Color(0xfff5b342)
-                  ),
-                ),
-                child: const Text(
-                  'Go to My Journal',
-                  style: TextStyle(
-                      fontFamily: fontFamily,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25
-                    ),
-                  ),
-                )] : [
-                  const Text(
-                  "Login to set goals and track your behavior.",
-                  style: TextStyle(
-                    fontSize: 25.0,
-                    fontFamily: fontFamily,
-                  ),
-                ),
-                  ElevatedButton (
-                  onPressed: (){
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
-                    );
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(
-                    const Color(0xfff5b342)
-                  ),
-                ),
-                child: const Text(
-                  'Login',
-                  style: TextStyle(
-                      fontFamily: fontFamily,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25
-                    ),
-                  ),
-                )
-                ],
-
-              )
             ],
           ),
         ),
