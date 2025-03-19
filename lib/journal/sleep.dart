@@ -368,96 +368,105 @@ class _SleepCardState extends State<SleepCard> {
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          decrementGoalHour();
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _goalHourController,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Hours'),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
+                                Center(
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.remove),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                decrementGoalHour();
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: _goalHourController,
+                                              decoration: const InputDecoration(
+                                                  labelText: 'Hours'),
+                                              keyboardType: TextInputType.number,
+                                              onChanged: (value) => {setState(() {})},
+                                              inputFormatters: <TextInputFormatter>[
+                                                FilteringTextInputFormatter.digitsOnly
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.add),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                incrementGoalHour();
+                                              },
+                                            ),
+                                          ),
                                         ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          incrementGoalHour();
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          decrementGoalMinute();
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _goalMinuteController,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Minutes'),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          incrementGoalMinute();
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                      ))),
+                                Center(
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                      child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).primaryColor,
+                                            borderRadius: BorderRadius.circular(24),
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.remove),
+                                            color: Colors.white,
+                                            onPressed: () {
+                                              decrementGoalMinute();
+                                            },
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller: _goalMinuteController,
+                                            decoration: const InputDecoration(
+                                                labelText: 'Minutes'),
+                                            keyboardType: TextInputType.number,
+                                            onChanged: (value) => {setState(() {})},
+                                            inputFormatters: <TextInputFormatter>[
+                                              FilteringTextInputFormatter.digitsOnly
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).primaryColor,
+                                            borderRadius: BorderRadius.circular(24),
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.add),
+                                            color: Colors.white,
+                                            onPressed: () {
+                                              incrementGoalMinute();
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  )
+                                )
+                                ,
                                 const SizedBox(
                                   height: 10,
                                 ),

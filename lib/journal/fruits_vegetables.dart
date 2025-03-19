@@ -568,50 +568,55 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          decrementGoalServing();
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _goalController,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Servings/day'),
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
+                                Center(
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.remove),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                decrementGoalServing();
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: _goalController,
+                                              decoration: const InputDecoration(
+                                                  labelText: 'Servings/day'),
+                                              keyboardType: TextInputType.number,
+                                              inputFormatters: <TextInputFormatter>[
+                                                FilteringTextInputFormatter.digitsOnly
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.add),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                incrementGoalServing();
+                                              },
+                                            ),
+                                          ),
                                         ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          incrementGoalServing();
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                      )
+                                    )
+                                  ),
                                 const SizedBox(
                                   height: 10,
                                 ),
@@ -639,50 +644,55 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                     color: Theme.of(context).primaryColor,
                                   ),
                                 ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          decrementBehaviorServing();
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _behaviorController,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Servings/day'),
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
+                                Center(
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.remove),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                decrementBehaviorServing();
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: _behaviorController,
+                                              decoration: const InputDecoration(
+                                                  labelText: 'Servings/day'),
+                                              keyboardType: TextInputType.number,
+                                              inputFormatters: <TextInputFormatter>[
+                                                FilteringTextInputFormatter.digitsOnly
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).primaryColor,
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.add),
+                                              color: Colors.white,
+                                              onPressed: () {
+                                                incrementBehaviorServing();
+                                              },
+                                            ),
+                                          ),
                                         ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          incrementBehaviorServing();
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                      )
+                                    )
+                                  ),
                                 const SizedBox(
                                   height: 10,
                                 ),
