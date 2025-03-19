@@ -44,6 +44,8 @@ class _ActivityCardState extends State<ActivityCard> {
   late Map<String, List<String>> activityMap;
   late Map<String, dynamic> _activities;
 
+  List<String> _selectedValues = [];
+
   String calculateTotalGoal() {
     int total = 0;
 
@@ -334,6 +336,30 @@ class _ActivityCardState extends State<ActivityCard> {
             _activities = activityData['activities'];
             _feedback = activityData['feedback'];
           });
+
+            for (var category in _activities.entries) {
+              if (category.value is Map<String, dynamic>) {
+                for (var activityEntry in (category.value as Map<String, dynamic>).entries) { 
+                  var activityData = activityEntry.value;
+
+                  if (activityData is Map<String, dynamic> &&
+                      activityData.containsKey("goal") &&
+                      activityData.containsKey("behavior")) {
+
+                    int goalHours = (activityData["goal"]["hours"] is int) ? activityData["goal"]["hours"] : 0;
+                    int goalMinutes = (activityData["goal"]["minutes"] is int) ? activityData["goal"]["minutes"] : 0;
+                    int behaviorHours = (activityData["behavior"]["hours"] is int) ? activityData["behavior"]["hours"] : 0;
+                    int behaviorMinutes = (activityData["behavior"]["minutes"] is int) ? activityData["behavior"]["minutes"] : 0;
+
+                    if (goalHours > 0 || goalMinutes > 0 || behaviorHours > 0 || behaviorMinutes > 0) {
+                      setState(() {
+                        _selectedValues.add(activityEntry.key);
+                      });
+                    }
+                  }
+                }
+              }
+            }
         } else {
           setState(() {
             _activities = {};
@@ -460,6 +486,9 @@ class _ActivityCardState extends State<ActivityCard> {
             _selectedActivityType = '';
             _dependentItems = [];
           });
+
+          _fetchData();
+
           showCustomToast(
               context,
               'Physical activity has been saved successfully.',
@@ -663,7 +692,12 @@ class _ActivityCardState extends State<ActivityCard> {
                                           (String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(value),
+                                      child: Text(value,
+                                      style: TextStyle(
+                                          color: _selectedValues.contains(value) ? Colors.green : Colors.black,
+                                          fontWeight: _selectedValues.contains(value) ? FontWeight.bold : FontWeight.normal,
+                                        )
+                                      ),
                                     );
                                   }).toList(),
                                 ),

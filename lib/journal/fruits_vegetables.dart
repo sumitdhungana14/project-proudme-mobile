@@ -40,6 +40,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
 
   late Map<String, List<String>> eatMap;
   late Map<String, dynamic> _eats;
+  List<String> _selectedValues = [];
 
   String calculateTotalGoal() {
     int total = 0;
@@ -110,6 +111,24 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
             _eats = activityData['servings'];
             _feedback = activityData['feedback'];
           });
+
+          for (var category in _eats.entries) {
+              if (category.value is Map<String, dynamic>) {
+                for (var foodEntry in (category.value as Map<String, dynamic>).entries) {
+                  var foodData = foodEntry.value;
+                  if (foodData is Map<String, dynamic>) {
+                    int goalValue = foodData["goal"] is int ? foodData["goal"] : 0;
+                    int behaviorValue = foodData["behavior"] is int ? foodData["behavior"] : 0;
+
+                    if (goalValue > 0 || behaviorValue > 0) {
+                      setState(() {
+                        _selectedValues.add(foodEntry.key);
+                      });
+                    }
+                  }
+                }
+              }
+            }
         } else {
           _eats = {};
           _feedback = '';
@@ -117,6 +136,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
       }
     } catch (e) {
       showCustomToast(context, e.toString(), errorColor);
+      print(e);
     } finally {
       setState(() {
         _isLoading = false;
@@ -170,6 +190,8 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
             body: jsonData,
             headers: baseHttpHeader,
           );
+
+          _fetchData();
 
           setState(() {
             _selectedEatType = '';
@@ -531,7 +553,11 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                           (String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(value),
+                                      child: Text(value,
+                                      style: TextStyle(
+                                        color: _selectedValues.contains(value) ? Colors.green : Colors.black,
+                                        fontWeight: _selectedValues.contains(value) ? FontWeight.bold : FontWeight.normal,
+                                      ),),
                                     );
                                   }).toList(),
                                 ),

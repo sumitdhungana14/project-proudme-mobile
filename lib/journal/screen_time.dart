@@ -48,6 +48,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
 
   late Map<String, List<String>> screenTimeMap;
   late Map<String, dynamic> _screentimes;
+  List<String> _selectedValues = [];
 
   Future<void> _fetchData() async {
     setState(() {
@@ -69,6 +70,30 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
             _screentimes = screenTimeData['screentime'];
             _feedback = screenTimeData['feedback'];
           });
+
+          for (var category in _screentimes.entries) { 
+            if (category.value is Map<String, dynamic>) {
+              for (var screenEntry in (category.value as Map<String, dynamic>).entries) {
+                var screenData = screenEntry.value;
+
+                if (screenData is Map<String, dynamic> &&
+                    screenData.containsKey("goal") &&
+                    screenData.containsKey("behavior")) {
+
+                  int goalHours = (screenData["goal"]["hours"] is int) ? screenData["goal"]["hours"] : 0;
+                  int goalMinutes = (screenData["goal"]["minutes"] is int) ? screenData["goal"]["minutes"] : 0;
+                  int behaviorHours = (screenData["behavior"]["hours"] is int) ? screenData["behavior"]["hours"] : 0;
+                  int behaviorMinutes = (screenData["behavior"]["minutes"] is int) ? screenData["behavior"]["minutes"] : 0;
+
+                  if (goalHours > 0 || goalMinutes > 0 || behaviorHours > 0 || behaviorMinutes > 0) {
+                    setState(() {
+                      _selectedValues.add(screenEntry.key);
+                    });
+                  }
+                }
+              }
+            }
+          }
         } else {
           setState(() {
             _screentimes = {};
@@ -142,6 +167,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
             _selectedScreenTimeType = '';
             _dependentItems = [];
           });
+
+          _fetchData();
+
           showCustomToast(context, 'Screen time has been saved successfully.',
               Theme.of(context).primaryColor);
         } else if (response.statusCode == 400) {
@@ -677,7 +705,12 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                           (String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(value),
+                                      child: Text(value,
+                                      style: TextStyle(
+                                          color: _selectedValues.contains(value) ? Colors.green : Colors.black,
+                                          fontWeight: _selectedValues.contains(value) ? FontWeight.bold : FontWeight.normal,
+                                        )
+                                      ),
                                     );
                                   }).toList(),
                                 ),
