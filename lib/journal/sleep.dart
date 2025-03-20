@@ -8,6 +8,7 @@ import 'package:project_proud_me/endpoints.dart';
 import 'package:http/http.dart' show get, post;
 import 'dart:convert';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'dart:async' show Timer;
 
 class SleepCard extends StatefulWidget {
   //TODO: Change the API to receive goalValue and behaviorValue in minutes not hours (double)
@@ -22,6 +23,8 @@ class SleepCard extends StatefulWidget {
 }
 
 class _SleepCardState extends State<SleepCard> {
+  Timer? _debounce;
+
   final TextEditingController _goalHourController = TextEditingController();
   final TextEditingController _goalMinuteController = TextEditingController();
 
@@ -32,7 +35,7 @@ class _SleepCardState extends State<SleepCard> {
   bool _isLoading = false;
   String _feedback = '';
 
-  void incrementGoalHour() {
+  void incrementGoalHour() async {
     setState(() {
       if (_goalHourController.text.isEmpty) {
         _goalHourController.text = 1.toString();
@@ -41,9 +44,11 @@ class _SleepCardState extends State<SleepCard> {
             (int.parse(_goalHourController.text) + 1).toString();
       }
     });
+
+    await autosave();
   }
 
-  void incrementGoalMinute() {
+  void incrementGoalMinute() async {
     setState(() {
       if (_goalMinuteController.text.isEmpty) {
         _goalMinuteController.text = 1.toString();
@@ -52,9 +57,11 @@ class _SleepCardState extends State<SleepCard> {
             (int.parse(_goalMinuteController.text) + 15).toString();
       }
     });
+
+    await autosave();
   }
 
-  void decrementGoalHour() {
+  void decrementGoalHour() async {
     setState(() {
       if (_goalHourController.text.isNotEmpty &&
           int.parse(_goalHourController.text) > 0) {
@@ -62,9 +69,11 @@ class _SleepCardState extends State<SleepCard> {
             (int.parse(_goalHourController.text) - 1).toString();
       }
     });
+
+    await autosave();
   }
 
-  void decrementGoalMinute() {
+  void decrementGoalMinute() async {
     setState(() {
       if (_goalMinuteController.text.isNotEmpty &&
           int.parse(_goalMinuteController.text) > 15) {
@@ -72,6 +81,8 @@ class _SleepCardState extends State<SleepCard> {
             (int.parse(_goalMinuteController.text) - 15).toString();
       }
     });
+  
+    await autosave();
   }
 
   String calculateTotalGoal() {
@@ -101,6 +112,8 @@ class _SleepCardState extends State<SleepCard> {
         _selectedBehaviorBedTime = picked;
       });
     }
+
+    await autosave();
   }
 
   Future<void> _selectBehaviorWakeUpTime(BuildContext context) async {
@@ -114,6 +127,8 @@ class _SleepCardState extends State<SleepCard> {
         _selectedBehaviorWakeUpTime = picked;
       });
     }
+
+    await autosave();
   }
 
   Future<void> _fetchDataAndSetControllers() async {
@@ -157,7 +172,36 @@ class _SleepCardState extends State<SleepCard> {
     }
   }
 
-  void onSave() async {
+  void saveBehavior(String goalHour, String goalMinute, String reflection, int totalBehaviorInMinutes) async {
+    String payload = getSleepPayload(
+              goalHour,
+              goalMinute,
+              totalBehaviorInMinutes,
+              _selectedBehaviorBedTime,
+              _selectedBehaviorWakeUpTime,
+              widget.userId,
+              _feedback,
+              reflection);
+
+          var response = await post(
+            Uri.parse(saveGoal),
+            body: payload,
+            headers: baseHttpHeader,
+          );
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            await post(
+              Uri.parse(saveGoal),
+              body: payload,
+              headers: baseHttpHeader,
+            );
+            showCustomToast(context, sleepSaved, Theme.of(context).primaryColor);
+          } else {
+            showCustomToast(context, sleepNotSaved, errorColor);
+        }
+  }
+
+  void onSave(bool autosave) async {
     setState(() {
       _isLoading = true;
     });
@@ -168,51 +212,30 @@ class _SleepCardState extends State<SleepCard> {
     int totalBehaviorInMinutes = int.tryParse(calculateTimeDifference(
             _selectedBehaviorBedTime, _selectedBehaviorWakeUpTime)) ??
         0;
-
+    
     try {
-      String chatPayload = getChatbotPayloadForSleep(
+      if (!autosave) {
+        String chatPayload = getChatbotPayloadForSleep(
           goalHour, goalMinute, totalBehaviorInMinutes, reflection);
 
-      var chatResponse = await post(
-        Uri.parse(getChatReply),
-        body: chatPayload,
-        headers: baseHttpHeader,
-      );
-
-      if (chatResponse.statusCode == 200) {
-        String feedback = jsonDecode(chatResponse.body)['chat_reply'];
-        setState(() {
-          _feedback = feedback;
-        });
-
-        String payload = getSleepPayload(
-            goalHour,
-            goalMinute,
-            totalBehaviorInMinutes,
-            _selectedBehaviorBedTime,
-            _selectedBehaviorWakeUpTime,
-            widget.userId,
-            _feedback,
-            reflection);
-
-        var response = await post(
-          Uri.parse(saveGoal),
-          body: payload,
+        var chatResponse = await post(
+          Uri.parse(getChatReply),
+          body: chatPayload,
           headers: baseHttpHeader,
         );
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          await post(
-            Uri.parse(saveGoal),
-            body: payload,
-            headers: baseHttpHeader,
-          );
-          showCustomToast(context, sleepSaved, Theme.of(context).primaryColor);
+        if (chatResponse.statusCode == 200) {
+          String feedback = jsonDecode(chatResponse.body)['chat_reply'];
+          setState(() {
+            _feedback = feedback;
+          });
+
+          saveBehavior(goalHour, goalMinute, reflection, totalBehaviorInMinutes);
         } else {
           showCustomToast(context, sleepNotSaved, errorColor);
         }
       } else {
-        showCustomToast(context, sleepNotSaved, errorColor);
+        saveBehavior(goalHour, goalMinute, reflection, totalBehaviorInMinutes);
       }
     } catch (e) {
       showCustomToast(context, e.toString(), errorColor);
@@ -223,10 +246,23 @@ class _SleepCardState extends State<SleepCard> {
     }
   }
 
+  Future<void> autosave() async {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 2000), () {
+        onSave(true);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchDataAndSetControllers();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
   @override
@@ -394,7 +430,9 @@ class _SleepCardState extends State<SleepCard> {
                                               decoration: const InputDecoration(
                                                   labelText: 'Hours'),
                                               keyboardType: TextInputType.number,
-                                              onChanged: (value) => {setState(() {})},
+                                              onChanged: (value) => {
+                                                autosave()
+                                              },
                                               inputFormatters: <TextInputFormatter>[
                                                 FilteringTextInputFormatter.digitsOnly
                                               ],
@@ -442,7 +480,9 @@ class _SleepCardState extends State<SleepCard> {
                                             decoration: const InputDecoration(
                                                 labelText: 'Minutes'),
                                             keyboardType: TextInputType.number,
-                                            onChanged: (value) => {setState(() {})},
+                                            onChanged: (value) => {
+                                              autosave()
+                                            },
                                             inputFormatters: <TextInputFormatter>[
                                               FilteringTextInputFormatter.digitsOnly
                                             ],
@@ -576,6 +616,7 @@ class _SleepCardState extends State<SleepCard> {
                                   controller: _reflectionController,
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null,
+                                  onChanged: (value) => autosave(),
                                   decoration: const InputDecoration(
                                       labelText: 'Type my thoughts'),
                                 ),
@@ -620,14 +661,14 @@ class _SleepCardState extends State<SleepCard> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            onSave();
+                            onSave(false);
                           },
                           style: ButtonStyle(
                             backgroundColor: WidgetStateProperty.all<Color>(
                                 const Color(0xfff5b342)),
                           ),
                           child: const Text(
-                            'Save',
+                            'Get AI Feedback',
                             style: TextStyle(
                                 fontFamily: fontFamily,
                                 fontWeight: FontWeight.bold,
