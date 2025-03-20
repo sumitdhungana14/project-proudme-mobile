@@ -49,7 +49,7 @@ class _SleepCardState extends State<SleepCard> {
         _goalMinuteController.text = 1.toString();
       } else {
         _goalMinuteController.text =
-            (int.parse(_goalMinuteController.text) + 1).toString();
+            (int.parse(_goalMinuteController.text) + 15).toString();
       }
     });
   }
@@ -67,9 +67,9 @@ class _SleepCardState extends State<SleepCard> {
   void decrementGoalMinute() {
     setState(() {
       if (_goalMinuteController.text.isNotEmpty &&
-          int.parse(_goalMinuteController.text) > 0) {
+          int.parse(_goalMinuteController.text) > 15) {
         _goalMinuteController.text =
-            (int.parse(_goalMinuteController.text) - 1).toString();
+            (int.parse(_goalMinuteController.text) - 15).toString();
       }
     });
   }
