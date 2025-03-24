@@ -9,6 +9,7 @@ import 'package:project_proud_me/endpoints.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/utils/helpers.dart';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'dart:async' show Timer;
 
 class ScreenTimeCard extends StatefulWidget {
   final String userId;
@@ -27,6 +28,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     for better performance, use the widget on all journal behavior
     items.
   */
+  Timer? _debounce;
 
   List<String> _dependentItems = [];
   String _selectedScreenTimeCategory = '';
@@ -70,6 +72,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
             _screentimes = screenTimeData['screentime'];
             _feedback = screenTimeData['feedback'];
           });
+
+          _selectedValues = [];
 
           for (var category in _screentimes.entries) { 
             if (category.value is Map<String, dynamic>) {
@@ -117,72 +121,43 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
     _setControllers();
   }
 
-  void save() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  void onSave(bool autosave) async {
     try {
-      String chatPayload = getChatbotPayloadFor(
+        if (!autosave) {
+          setState(() {
+          _isLoading = true;
+        });
+        String chatPayload = getChatbotPayloadFor(
           int.parse(calculateTotalGoal()),
           int.parse(calculateTotalBehavior()),
           _reflectionController.text,
           'Screen Time',
           recommendedScreenTimeValue);
-      var chatResponse = await post(
-        Uri.parse(getChatReply),
-        body: chatPayload,
-        headers: baseHttpHeader,
-      );
-      if (chatResponse.statusCode == 200) {
-        String feedback = jsonDecode(chatResponse.body)['chat_reply'];
-        setState(() {
-          _feedback = feedback;
-        });
-        String jsonData = getScreenTimeBehaviorPayload(
-            _goalHourControllers,
-            _goalMinuteControllers,
-            _behaviorHourControllers,
-            _behaviorMinuteControllers,
-            widget.userId,
-            _feedback,
-            _reflectionController.text,
-            calculateTotalGoal(),
-            calculateTotalBehavior(),
-            screenTimeMap);
-        var response = await post(
-          Uri.parse(saveGoal),
-          body: jsonData,
+        var chatResponse = await post(
+          Uri.parse(getChatReply),
+          body: chatPayload,
           headers: baseHttpHeader,
         );
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          await post(
-            Uri.parse(saveGoal),
-            body: jsonData,
-            headers: baseHttpHeader,
-          );
-
+        if (chatResponse.statusCode == 200) {
+          String feedback = jsonDecode(chatResponse.body)['chat_reply'];
           setState(() {
-            _selectedScreenTimeType = '';
-            _dependentItems = [];
+            _feedback = feedback;
           });
-
-          _fetchData();
-
-          showCustomToast(context, 'Screen time has been saved successfully.',
-              Theme.of(context).primaryColor);
-        } else if (response.statusCode == 400) {
-          showCustomToast(
-              context, 'Screen time couldn\'t be saved.', errorColor);
+          saveBehavior(autosave);
         }
+      } else {
+        saveBehavior(autosave);
       }
+
     } catch (e) {
       showCustomToast(context, e.toString(), errorColor);
     } finally {
       setState(() {
         _isLoading = false;
-        _selectedScreenTimeType = '';
+        if (!autosave) {
+          _dependentItems = [];
+          _selectedScreenTimeType = '';          
+        }
       });
     }
   }
@@ -240,6 +215,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
         }
       }
     });
+
+    autosave();
   }
 
   void incrementBehaviorHour() {
@@ -254,8 +231,11 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   1)
               .toString();
         }
+      
+      autosave();
       }
     });
+
   }
 
   void incrementGoalMinute() {
@@ -269,6 +249,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   15)
               .toString();
         }
+
+      autosave();
       }
     });
   }
@@ -286,6 +268,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                       15)
                   .toString();
         }
+      
+      autosave();
       }
     });
   }
@@ -301,6 +285,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                       1)
                   .toString();
         }
+
+      autosave();      
       }
     });
   }
@@ -318,6 +304,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   1)
               .toString();
         }
+      
+      autosave();      
       }
     });
   }
@@ -333,6 +321,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   15)
               .toString();
         }
+      autosave();      
       }
     });
   }
@@ -352,6 +341,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                       15)
                   .toString();
         }
+
+      autosave(); 
       }
     });
   }
@@ -402,6 +393,19 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  Future<void> autosave() async {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 2000), () {
+        onSave(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
   void _initGoalHourControllers() {
@@ -515,6 +519,44 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
         );
       },
     );
+  }
+
+  void saveBehavior(bool autosave) async {
+
+    String jsonData = getScreenTimeBehaviorPayload(
+            _goalHourControllers,
+            _goalMinuteControllers,
+            _behaviorHourControllers,
+            _behaviorMinuteControllers,
+            widget.userId,
+            _feedback,
+            _reflectionController.text,
+            calculateTotalGoal(),
+            calculateTotalBehavior(),
+            screenTimeMap);
+        var response = await post(
+          Uri.parse(saveGoal),
+          body: jsonData,
+          headers: baseHttpHeader,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          await post(
+            Uri.parse(saveGoal),
+            body: jsonData,
+            headers: baseHttpHeader,
+          );
+
+          if (!autosave) {
+            _fetchData();
+          }
+
+          showCustomToast(context, 'Screen time has been saved successfully.',
+              Theme.of(context).primaryColor);
+        } else if (response.statusCode == 400) {
+          showCustomToast(
+              context, 'Screen time couldn\'t be saved.', errorColor);
+        }
   }
 
   @override
@@ -773,7 +815,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                         decoration: const InputDecoration(
                                             labelText: 'Hours'),
                                         keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
+                                        onChanged: (value) => {
+                                          autosave()
+                                        },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
@@ -822,7 +866,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                         decoration: const InputDecoration(
                                             labelText: 'Minutes'),
                                         keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
+                                        onChanged: (value) => {
+                                          autosave()
+                                        },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
@@ -899,7 +945,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                         decoration: const InputDecoration(
                                             labelText: 'Hours'),
                                         keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
+                                        onChanged: (value) => {
+                                          autosave()
+                                        },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
@@ -948,7 +996,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                         decoration: const InputDecoration(
                                             labelText: 'Minutes'),
                                         keyboardType: TextInputType.number,
-                                        onChanged: (value) => {setState(() {})},
+                                        onChanged: (value) => {
+                                          autosave()
+                                        },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
@@ -1001,6 +1051,9 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                   controller: _reflectionController,
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null,
+                                  onChanged: (value) => {
+                                    autosave()
+                                  },
                                   decoration: const InputDecoration(
                                       labelText: 'Type my thoughts'),
                                 ),
@@ -1052,14 +1105,14 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                     ),
                                     ElevatedButton(
                                       onPressed: () {
-                                        save();
+                                        onSave(false);
                                       },
                                       style: ButtonStyle(
                                         backgroundColor: WidgetStateProperty.all<Color>(
                                             const Color(0xfff5b342)),
                                       ),
                                       child: const Text(
-                                        'Save',
+                                        'Get AI Feedback',
                                         style: TextStyle(
                                             fontFamily: fontFamily,
                                             fontWeight: FontWeight.bold,
