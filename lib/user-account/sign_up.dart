@@ -242,6 +242,7 @@ final Map<String, dynamic> _formData = {
                 ),
                 const SizedBox(height: 20.0),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Username'),
                   onChanged: (value) async => await updateFormData('name', value),
                   validator: (value) {
@@ -252,11 +253,13 @@ final Map<String, dynamic> _formData = {
                       },
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Password'),
                   onChanged: (value) => updateFormData('password', value),
                   obscureText: true,
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Confirm Password'),
                   onChanged: (value) => updateFormData('confirmPassword', value),
                   obscureText: true,
@@ -268,14 +271,17 @@ final Map<String, dynamic> _formData = {
                       },
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'First Name'),
                   onChanged: (value) => updateFormData('firstName', value),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Last Name'),
                   onChanged: (value) => updateFormData('lastName', value),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'School Attending'),
                   onChanged: (value) => updateFormData('schoolName', value),
                 ),
@@ -321,6 +327,7 @@ final Map<String, dynamic> _formData = {
                   }).toList(),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Email Address'),
                   keyboardType: TextInputType.emailAddress,
                   onChanged: (value) => updateFormData('email', value),

@@ -616,6 +616,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: TextFormField(
+                                              onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                               controller: _goalController,
                                               decoration: const InputDecoration(
                                                   labelText: 'Servings/day'),
@@ -692,6 +693,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: TextFormField(
+                                              onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                               controller: _behaviorController,
                                               decoration: const InputDecoration(
                                                   labelText: 'Servings/day'),
@@ -747,6 +749,7 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                   ),
                                 ),
                                 TextFormField(
+                                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                   controller: _reflectionController,
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null,

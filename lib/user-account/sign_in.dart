@@ -142,6 +142,7 @@ class _SignInScreenState extends State<SignInScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(
                     labelText: 'Username/Email',
                   ),
@@ -152,6 +153,7 @@ class _SignInScreenState extends State<SignInScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   obscureText: true,
                   onChanged: (value) => updateFormData('password', value),
                   decoration: const InputDecoration(

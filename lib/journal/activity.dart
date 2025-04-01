@@ -756,6 +756,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: TextFormField(
+                                                    onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                                     controller: _goalHourController,
                                                     decoration: const InputDecoration(
                                                         labelText: 'Hours'),
@@ -806,6 +807,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: TextFormField(
+                                                    onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                                     controller: _goalMinuteController,
                                                     decoration: const InputDecoration(
                                                         labelText: 'Minutes'),
@@ -839,7 +841,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                           height: 10,
                                         ),
                                         Text(
-                                          'Total Goal: ${calculateTotalGoal()} Minutes',
+                                          'Total Goal: ${( int.parse(calculateTotalGoal())/ 60).toStringAsFixed(2)} Hours',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 20,
@@ -884,6 +886,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: TextFormField(
+                                                    onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                                     controller: _behaviorHourController,
                                                     decoration: const InputDecoration(
                                                         labelText: 'Hours'),
@@ -936,6 +939,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: TextFormField(
+                                                    onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                                     controller: _behaviorMinuteController,
                                                     decoration: const InputDecoration(
                                                         labelText: 'Minutes'),
@@ -970,7 +974,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                           height: 10,
                                         ),
                                         Text(
-                                          'Total Behavior: ${calculateTotalBehavior()} Minutes',
+                                          'Total Behavior: ${(int.parse(calculateTotalBehavior())/ 60).toStringAsFixed(2)} Hours',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 20,
@@ -994,6 +998,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                           ),
                                         ),
                                         TextFormField(
+                                          onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                           controller: _reflectionController,
                                           keyboardType: TextInputType.multiline,
                                           maxLines: null,
