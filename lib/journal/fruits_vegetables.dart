@@ -10,6 +10,7 @@ import 'package:project_proud_me/endpoints.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/utils/helpers.dart';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'dart:async' show Timer;
 
 class FruitsVegetablesCard extends StatefulWidget {
   final String userId;
@@ -24,6 +25,7 @@ class FruitsVegetablesCard extends StatefulWidget {
 
 class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     with SingleTickerProviderStateMixin {
+    Timer? _debounce;
     
     String _selectedEatType = '';
     List<String> _dependentItems = [];
@@ -112,6 +114,8 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
             _feedback = activityData['feedback'];
           });
 
+          _selectedValues = [];
+
           for (var category in _eats.entries) {
               if (category.value is Map<String, dynamic>) {
                 for (var foodEntry in (category.value as Map<String, dynamic>).entries) {
@@ -149,68 +153,41 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
     _setControllers();
   }
 
-  void save() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  void save(bool autoSave) async {
     try {
-      String totalGoal = calculateTotalGoal();
-      String totalBehavior = calculateTotalBehavior();
-      String chatPayload = getChatbotPayloadForEating(
-          int.parse(totalGoal), int.parse(totalBehavior), _reflectionController.text);
-      var chatResponse = await post(
-        Uri.parse(getChatReply),
-        body: chatPayload,
-        headers: baseHttpHeader,
-      );
-      if (chatResponse.statusCode == 200) {
-        String feedback = jsonDecode(chatResponse.body)['chat_reply'];
-        setState(() {
-          _feedback = feedback;
-        });
-        String jsonData = getEatingBehaviorPayload(
-            _goalControllers,
-            _behaviorControllers,
-            widget.userId,
-            _feedback,
-            _reflectionController.text,
-            totalGoal,
-            totalBehavior,
-            eatMap);
-        var response = await post(
-          Uri.parse(saveGoal),
-          body: jsonData,
-          headers: baseHttpHeader,
-        );
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          await post(
-            Uri.parse(saveGoal),
-            body: jsonData,
+       if (!autoSave) {
+          setState(() {
+            _isLoading = true;
+          });
+          String totalGoal = calculateTotalGoal();
+          String totalBehavior = calculateTotalBehavior();
+          String chatPayload = getChatbotPayloadForEating(
+              int.parse(totalGoal), int.parse(totalBehavior), _reflectionController.text);
+          var chatResponse = await post(
+            Uri.parse(getChatReply),
+            body: chatPayload,
             headers: baseHttpHeader,
           );
+          if (chatResponse.statusCode == 200) {
+            String feedback = jsonDecode(chatResponse.body)['chat_reply'];
+            setState(() {
+              _feedback = feedback;
+            });
+            saveBehavior(autoSave);
+          }
+       } else {
+        saveBehavior(autoSave);
+       }
 
-          _fetchData();
-
-          setState(() {
-            _selectedEatType = '';
-            _dependentItems = [];
-          });
-
-          showCustomToast(context, eatingSaved,
-              Theme.of(context).primaryColor);
-        } else if (response.statusCode == 400) {
-          showCustomToast(
-              context, eatingNotSaved, errorColor);
-        }
-      }
     } catch (e) {
       showCustomToast(context, e.toString(), errorColor);
     } finally {
       setState(() {
         _isLoading = false;
-        _selectedEatType = '';
+        if (!autoSave) {
+          _dependentItems = [];
+          _selectedEatType = '';          
+        }
       });
     }
   }
@@ -248,6 +225,11 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
           _goalController.text =
               (int.parse(_goalController.text) + 1).toString();
         }
+        if (!_selectedValues.contains(_selectedEatType)) {
+          _selectedValues.add(_selectedEatType);
+        }
+
+        autosave();
       }
     });
   }
@@ -261,6 +243,11 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
           _behaviorController.text =
               (int.parse(_behaviorController.text) + 1).toString();
         }
+        if (!_selectedValues.contains(_selectedEatType)) {
+          _selectedValues.add(_selectedEatType);
+        }
+
+        autosave();
       }
     });
   }
@@ -273,6 +260,12 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
           _goalController.text =
               (int.parse(_goalController.text) - 1).toString();
         }
+
+        if (int.parse(_goalController.text) == 0 && int.parse(_behaviorController.text) == 0) {
+          _selectedValues.remove(_selectedEatType);
+        }
+
+        autosave();
       }
     });
   }
@@ -285,6 +278,12 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
           _behaviorController.text =
               (int.parse(_behaviorController.text) - 1).toString();
         }
+
+        if (int.parse(_goalController.text) == 0 && int.parse(_behaviorController.text) == 0) {
+          _selectedValues.remove(_selectedEatType);
+        }
+
+        autosave();
       }
     });
   }
@@ -373,6 +372,77 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  Future<void> autosave() async {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 2000), () {
+        save(true);
+    });
+  }
+
+    void saveBehavior(bool autosave) async {
+
+      String totalGoal = calculateTotalGoal();
+      String totalBehavior = calculateTotalBehavior();
+
+      String jsonData = getEatingBehaviorPayload(
+            _goalControllers,
+            _behaviorControllers,
+            widget.userId,
+            _feedback,
+            _reflectionController.text,
+            totalGoal,
+            totalBehavior,
+            eatMap);
+
+        var response = await post(
+          Uri.parse(saveGoal),
+          body: jsonData,
+          headers: baseHttpHeader,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          await post(
+            Uri.parse(saveGoal),
+            body: jsonData,
+            headers: baseHttpHeader,
+          );
+
+          if (!autosave) {
+            _fetchData();
+          }
+
+          showCustomToast(context, eatingSaved,
+              Theme.of(context).primaryColor);
+        } else if (response.statusCode == 400) {
+          showCustomToast(
+              context, eatingNotSaved, errorColor);
+        }
+  }
+
+  void textFieldOnChange(String value) {
+    if (value != '') {
+      if (int.parse(_goalController.text) == 0 && int.parse(_behaviorController.text) == 0) {
+      setState(() {
+        _selectedValues.remove(_selectedEatType);
+      });
+    } else if(int.parse(_goalController.text) > 0 || int.parse(_behaviorController.text) > 0) {
+      if (!_selectedValues.contains(_selectedEatType)) {
+        setState(() {
+          _selectedValues.add(_selectedEatType);
+        });
+      }
+    }
+
+     autosave();
+    }
   }
 
   @override
@@ -618,6 +688,9 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                             child: TextFormField(
                                               onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                               controller: _goalController,
+                                              onChanged: (value) => {
+                                                textFieldOnChange(value)
+                                              },
                                               decoration: const InputDecoration(
                                                   labelText: 'Servings/day'),
                                               keyboardType: TextInputType.number,
@@ -695,6 +768,9 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                             child: TextFormField(
                                               onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                                               controller: _behaviorController,
+                                              onChanged: (value) => {
+                                                textFieldOnChange(value)
+                                              },
                                               decoration: const InputDecoration(
                                                   labelText: 'Servings/day'),
                                               keyboardType: TextInputType.number,
@@ -753,6 +829,9 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                   controller: _reflectionController,
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null,
+                                  onChanged: (value) => {
+                                    autosave()
+                                  },
                                   decoration: const InputDecoration(
                                       labelText: 'Type my thoughts'),
                                 ),
@@ -800,14 +879,14 @@ class _FruitsVegetablesCardState extends State<FruitsVegetablesCard>
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    save();
+                                    save(false);
                                   },
                                   style: ButtonStyle(
                                     backgroundColor: WidgetStateProperty.all<Color>(
                                         const Color(0xfff5b342)),
                                   ),
                                   child: const Text(
-                                    'Save',
+                                    'Get AI Feedback',
                                     style: TextStyle(
                                         fontFamily: fontFamily,
                                         fontWeight: FontWeight.bold,

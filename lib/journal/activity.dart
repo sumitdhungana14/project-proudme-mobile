@@ -8,6 +8,7 @@ import 'package:project_proud_me/endpoints.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/utils/helpers.dart';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'dart:async' show Timer;
 
 class ActivityCard extends StatefulWidget {
   final String userId;
@@ -22,6 +23,7 @@ class ActivityCard extends StatefulWidget {
 }
 
 class _ActivityCardState extends State<ActivityCard> {
+  Timer? _debounce;
   String _selectedActivityType = '';
   List<String> _dependentItems = [];
   String _selectedActivityCategory = '';
@@ -120,6 +122,8 @@ class _ActivityCardState extends State<ActivityCard> {
               (int.parse(_goalHourControllers[_selectedActivityType]!.text) + 1)
                   .toString();
         }
+
+        textFieldOnChange(_goalHourController.text);
       }
     });
   }
@@ -135,6 +139,8 @@ class _ActivityCardState extends State<ActivityCard> {
                   1)
               .toString();
         }
+
+        textFieldOnChange(_behaviorHourController.text);
       }
     });
   }
@@ -150,6 +156,8 @@ class _ActivityCardState extends State<ActivityCard> {
                       15)
                   .toString();
         }
+
+        textFieldOnChange(_goalMinuteController.text);
       }
     });
   }
@@ -166,6 +174,8 @@ class _ActivityCardState extends State<ActivityCard> {
                   15)
               .toString();
         }
+
+        textFieldOnChange(_behaviorMinuteController.text);
       }
     });
   }
@@ -179,6 +189,8 @@ class _ActivityCardState extends State<ActivityCard> {
               (int.parse(_goalHourControllers[_selectedActivityType]!.text) - 1)
                   .toString();
         }
+
+        textFieldOnChange(_goalHourController.text);
       }
     });
   }
@@ -194,6 +206,8 @@ class _ActivityCardState extends State<ActivityCard> {
                   1)
               .toString();
         }
+
+        textFieldOnChange(_behaviorHourController.text);
       }
     });
   }
@@ -209,6 +223,8 @@ class _ActivityCardState extends State<ActivityCard> {
                       15)
                   .toString();
         }
+
+        textFieldOnChange(_goalMinuteController.text);
       }
     });
   }
@@ -226,6 +242,8 @@ class _ActivityCardState extends State<ActivityCard> {
                   15)
               .toString();
         }
+
+        textFieldOnChange(_behaviorMinuteController.text);
       }
     });
   }
@@ -234,6 +252,19 @@ class _ActivityCardState extends State<ActivityCard> {
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+    Future<void> autosave() async {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 2000), () {
+        save(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
   void _initActivityMap() {
@@ -336,6 +367,8 @@ class _ActivityCardState extends State<ActivityCard> {
             _activities = activityData['activities'];
             _feedback = activityData['feedback'];
           });
+          
+          _selectedValues = [];
 
             for (var category in _activities.entries) {
               if (category.value is Map<String, dynamic>) {
@@ -433,31 +466,9 @@ class _ActivityCardState extends State<ActivityCard> {
     );
   }
 
-  void save() async {
-    setState(() {
-      _isLoading = true;
-    });
+  void saveBehavior(bool autosave) async {
 
-    try {
-      String chatPayload = getChatbotPayloadFor(
-          int.parse(calculateTotalGoal()),
-          int.parse(calculateTotalBehavior()),
-          _reflectionController.text,
-          'Physical Activity',
-          recommendedPhysicalActivityValue);
-      var chatResponse = await post(
-        Uri.parse(getChatReply),
-        body: chatPayload,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-      if (chatResponse.statusCode == 200) {
-        String feedback = jsonDecode(chatResponse.body)['chat_reply'];
-        setState(() {
-          _feedback = feedback;
-        });
-        String jsonData = getPhysicalActivityBehaviorPayload(
+    String jsonData = getPhysicalActivityBehaviorPayload(
             _goalHourControllers,
             _goalMinuteControllers,
             _behaviorHourControllers,
@@ -468,42 +479,91 @@ class _ActivityCardState extends State<ActivityCard> {
             calculateTotalGoal(),
             calculateTotalBehavior(),
             activityMap);
-
-        var response = await post(
+    var response = await post(
           Uri.parse(saveGoal),
           body: jsonData,
           headers: baseHttpHeader,
         );
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
           await post(
             Uri.parse(saveGoal),
             body: jsonData,
             headers: baseHttpHeader,
           );
 
-          setState(() {
-            _selectedActivityType = '';
-            _dependentItems = [];
-          });
+          if (!autosave) {
+            _fetchData();
+          }
 
-          _fetchData();
-
-          showCustomToast(
-              context,
-              'Physical activity has been saved successfully.',
+          showCustomToast(context, 'Physical activity has been saved successfully.',
               Theme.of(context).primaryColor);
         } else if (response.statusCode == 400) {
           showCustomToast(
               context, 'Physical activity couldn\'t be saved.', errorColor);
         }
+  }
+
+  void textFieldOnChange(String value) {
+    if (value != '') {
+      if (int.parse(_goalHourController.text) == 0 && int.parse(_goalMinuteController.text) == 0 &&
+          int.parse(_behaviorHourController.text) == 0 && int.parse(_behaviorMinuteController.text) == 0) {
+      setState(() {
+        _selectedValues.remove(_selectedActivityType);
+      });
+    } else if(int.parse(_goalHourController.text) > 0 || int.parse(_goalMinuteController.text) > 0 ||
+        int.parse(_behaviorHourController.text) > 0 || int.parse(_behaviorMinuteController.text) > 0) {
+      if (!_selectedValues.contains(_selectedActivityType)) {
+        setState(() {
+          _selectedValues.add(_selectedActivityType);
+        });
+      }
+    }
+
+     autosave();
+    }
+  }
+
+  void save(bool autoSave) async {
+    try {
+      if (!autoSave) {
+        setState(() {
+          _isLoading = true;
+        });
+
+        String chatPayload = getChatbotPayloadFor(
+            int.parse(calculateTotalGoal()),
+            int.parse(calculateTotalBehavior()),
+            _reflectionController.text,
+            'Physical Activity',
+            recommendedPhysicalActivityValue);
+        var chatResponse = await post(
+          Uri.parse(getChatReply),
+          body: chatPayload,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+        if (chatResponse.statusCode == 200) {
+          String feedback = jsonDecode(chatResponse.body)['chat_reply'];
+          setState(() {
+            _feedback = feedback;
+          });
+
+          saveBehavior(autoSave);
+        }
+      } else {
+        saveBehavior(autoSave);
       }
     } catch (e) {
       showCustomToast(context, e.toString(), errorColor);
     } finally {
       setState(() {
         _isLoading = false;
-        _selectedActivityType = '';
+        if (!autoSave) {
+          _dependentItems = [];
+          _selectedActivityType = '';          
+        }
       });
     }
   }
@@ -761,7 +821,9 @@ class _ActivityCardState extends State<ActivityCard> {
                                                     decoration: const InputDecoration(
                                                         labelText: 'Hours'),
                                                     keyboardType: TextInputType.number,
-                                                    onChanged: (value) => {setState(() {})},
+                                                    onChanged: (value) => {
+                                                      textFieldOnChange(value)
+                                                    },
                                                     inputFormatters: <TextInputFormatter>[
                                                       FilteringTextInputFormatter.digitsOnly
                                                     ],
@@ -812,7 +874,9 @@ class _ActivityCardState extends State<ActivityCard> {
                                                     decoration: const InputDecoration(
                                                         labelText: 'Minutes'),
                                                     keyboardType: TextInputType.number,
-                                                    onChanged: (value) => {setState(() {})},
+                                                    onChanged: (value) => {
+                                                      textFieldOnChange(value)
+                                                    },
                                                     inputFormatters: <TextInputFormatter>[
                                                       FilteringTextInputFormatter.digitsOnly
                                                     ],
@@ -892,7 +956,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                         labelText: 'Hours'),
                                                     keyboardType: TextInputType.number,
                                                     onChanged: (value) {
-                                                      setState(() {});
+                                                      textFieldOnChange(value);
                                                     },
                                                     inputFormatters: <TextInputFormatter>[
                                                       FilteringTextInputFormatter.digitsOnly
@@ -945,7 +1009,7 @@ class _ActivityCardState extends State<ActivityCard> {
                                                         labelText: 'Minutes'),
                                                     keyboardType: TextInputType.number,
                                                     onChanged: (value) {
-                                                      setState(() {});
+                                                      textFieldOnChange(value);
                                                     },
                                                     inputFormatters: <TextInputFormatter>[
                                                       FilteringTextInputFormatter.digitsOnly
@@ -1002,6 +1066,9 @@ class _ActivityCardState extends State<ActivityCard> {
                                           controller: _reflectionController,
                                           keyboardType: TextInputType.multiline,
                                           maxLines: null,
+                                          onChanged: (value) => {
+                                            autosave()
+                                          },
                                           decoration: const InputDecoration(
                                               labelText: 'Type my thoughts'),
                                         ),
@@ -1053,14 +1120,14 @@ class _ActivityCardState extends State<ActivityCard> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    save();
+                                    save(false);
                                   },
                                   style: ButtonStyle(
                                     backgroundColor: WidgetStateProperty.all<Color>(
                                         const Color(0xfff5b342)),
                                   ),
                                   child: const Text(
-                                    'Save',
+                                    'Get AI Feedback',
                                     style: TextStyle(
                                         fontFamily: fontFamily,
                                         fontWeight: FontWeight.bold,

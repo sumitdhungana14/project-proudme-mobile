@@ -123,8 +123,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
 
   void onSave(bool autosave) async {
     try {
-        if (!autosave) {
-          setState(() {
+      if (!autosave) {
+        setState(() {
           _isLoading = true;
         });
         String chatPayload = getChatbotPayloadFor(
@@ -214,7 +214,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   .toString();
         }
 
-      autosave();
+      textFieldOnChange(_goalHourController.text);
       }
     });
   }
@@ -232,7 +232,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
               .toString();
         }
       
-      autosave();
+      textFieldOnChange(_behaviorHourController.text);
       }
     });
 
@@ -250,7 +250,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
               .toString();
         }
 
-      autosave();
+      textFieldOnChange(_goalMinuteController.text);
       }
     });
   }
@@ -269,7 +269,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   .toString();
         }
       
-      autosave();
+      textFieldOnChange(_behaviorMinuteController.text);
       }
     });
   }
@@ -286,7 +286,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   .toString();
         }
 
-      autosave();      
+      textFieldOnChange(_goalHourController.text);
       }
     });
   }
@@ -305,7 +305,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
               .toString();
         }
       
-      autosave();      
+      textFieldOnChange(_behaviorHourController.text);
       }
     });
   }
@@ -321,7 +321,8 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   15)
               .toString();
         }
-      autosave();      
+
+      textFieldOnChange(_goalMinuteController.text);
       }
     });
   }
@@ -342,7 +343,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                   .toString();
         }
 
-      autosave(); 
+      textFieldOnChange(_behaviorMinuteController.text);
       }
     });
   }
@@ -468,6 +469,26 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
           _behaviorMinuteControllers[item]!.text = _screentimes[key][item]!['behavior']['minutes'].toString();
        }
       }
+    }
+  }
+
+  void textFieldOnChange(String value) {
+    if (value != '') {
+      if (int.parse(_goalHourController.text) == 0 && int.parse(_goalMinuteController.text) == 0 &&
+          int.parse(_behaviorHourController.text) == 0 && int.parse(_behaviorMinuteController.text) == 0) {
+      setState(() {
+        _selectedValues.remove(_selectedScreenTimeType);
+      });
+    } else if(int.parse(_goalHourController.text) > 0 || int.parse(_goalMinuteController.text) > 0 ||
+        int.parse(_behaviorHourController.text) > 0 || int.parse(_behaviorMinuteController.text) > 0) {
+      if (!_selectedValues.contains(_selectedScreenTimeType)) {
+        setState(() {
+          _selectedValues.add(_selectedScreenTimeType);
+        });
+      }
+    }
+
+     autosave();
     }
   }
 
@@ -817,7 +838,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                             labelText: 'Hours'),
                                         keyboardType: TextInputType.number,
                                         onChanged: (value) => {
-                                          autosave()
+                                          textFieldOnChange(value)
                                         },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
@@ -869,7 +890,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                             labelText: 'Minutes'),
                                         keyboardType: TextInputType.number,
                                         onChanged: (value) => {
-                                          autosave()
+                                          textFieldOnChange(value)
                                         },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
@@ -949,7 +970,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                             labelText: 'Hours'),
                                         keyboardType: TextInputType.number,
                                         onChanged: (value) => {
-                                          autosave()
+                                          textFieldOnChange(value)
                                         },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
@@ -1001,7 +1022,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                             labelText: 'Minutes'),
                                         keyboardType: TextInputType.number,
                                         onChanged: (value) => {
-                                          autosave()
+                                          textFieldOnChange(value)
                                         },
                                         inputFormatters: <TextInputFormatter>[
                                           FilteringTextInputFormatter.digitsOnly
