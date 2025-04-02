@@ -10,3 +10,4 @@ const String getChatReply = '$baseUrl/chatbot';
 const String register = '$baseUrl/register';
 const String verifyUser = '$baseUrl/verify';
 const String sendVerificationCode = '$baseUrl/send-code';
+const String dailyReport = '$baseUrl/daily-report';

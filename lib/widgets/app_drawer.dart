@@ -2,6 +2,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:flutter/material.dart';
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/journal/my_journal.dart';
+import 'package:project_proud_me/daily-report/daily_report.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
 class MyDrawer extends StatefulWidget {
@@ -78,6 +79,10 @@ class _MyDrawerState extends State<MyDrawer> {
               )
             ),
             onTap: () {
+              Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DailyReportPage()),
+              );
             },
           ),
         ],

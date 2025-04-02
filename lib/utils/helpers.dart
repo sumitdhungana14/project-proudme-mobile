@@ -21,6 +21,15 @@ String getQueryParamsForGoalEndpoints(String id, String goalType) {
   return Uri(queryParameters: params).query;
 }
 
+String getQueryParams(String id, String goalType, String day) {
+  var params = {
+    'user[_id]': id,
+    'goalType': goalType,
+    'date': day
+  };
+  return Uri(queryParameters: params).query;
+}
+
 String getNowInFormat(String format) {
   DateTime now = DateTime.now();
   return DateFormat(format).format(now);
