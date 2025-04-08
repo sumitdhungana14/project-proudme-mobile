@@ -20,10 +20,12 @@ class _DailyReportPageState extends State<DailyReportPage> {
   String? _selectedDay;
   bool _isLoading = false;
   late String _userId;
+  bool _isFetchingJournalDates = false;
   Map<String, dynamic> _activityData = {};
   Map<String, dynamic> _sleepData = {};
   Map<String, dynamic> _screenTimeData = {};
   Map<String, dynamic> _eatData = {};
+  List<DateTime> _highlightedDates = [];
 
   Future<void> _setUserId() async {
     setState(() {
@@ -34,6 +36,7 @@ class _DailyReportPageState extends State<DailyReportPage> {
       _userId = userId;
       _isLoading = false;
     });
+    _getJournalDates();
   }
 
   Future<dynamic> _getEatData(String day) async {
@@ -165,6 +168,38 @@ class _DailyReportPageState extends State<DailyReportPage> {
         setState(() {
           _isLoading = false;
         });
+    }
+  }
+
+    Future<void> _getJournalDates() async {
+    try {
+      setState(() {
+        _isFetchingJournalDates = true;
+      });
+
+    String queryString =
+          getJournalDateParams(_userId);
+
+    final response = await http.get(Uri.parse('$journalDates?$queryString'));
+
+    if (response.statusCode == 200) {
+        List<dynamic> responseBody = json.decode(response.body);
+
+        if (responseBody.isNotEmpty) {
+          _highlightedDates = getDateInCalendarFormat(List<String>.from(responseBody));
+        } else {
+          _highlightedDates = [];
+        }
+      } else {
+        _highlightedDates = [];
+        throw Exception('Failed to fetch journal dates: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    } finally {
+      setState(() {
+        _isFetchingJournalDates = false;
+      });
     }
   }
 
@@ -300,7 +335,7 @@ class _DailyReportPageState extends State<DailyReportPage> {
                     _getScreenTimeData(day);
                     _getSleepData(day);
                   },
-                  highlightedDates: [],
+                  highlightedDates: _highlightedDates,
                 ),
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())

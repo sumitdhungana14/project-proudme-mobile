@@ -11,3 +11,4 @@ const String register = '$baseUrl/register';
 const String verifyUser = '$baseUrl/verify';
 const String sendVerificationCode = '$baseUrl/send-code';
 const String dailyReport = '$baseUrl/daily-report';
+const String journalDates = '$baseUrl/journals-date/v1';

@@ -30,6 +30,15 @@ String getQueryParams(String id, String goalType, String day) {
   return Uri(queryParameters: params).query;
 }
 
+String getJournalDateParams(String id) {
+
+  var params = {
+    'userId': id,
+    'date': getNowInFormat('M/d/yyyy')
+  };
+  return Uri(queryParameters: params).query;
+}
+
 String getNowInFormat(String format) {
   DateTime now = DateTime.now();
   return DateFormat(format).format(now);
@@ -230,6 +239,16 @@ bool isToday(String date) {
   return today.year == now.year &&
       today.month == now.month &&
       today.day == now.day;
+}
+
+List<DateTime> getDateInCalendarFormat(List<String> dates) {
+  final dateFormat = DateFormat('M/d/yyyy');
+
+  List<DateTime> dateTimes = dates.map((date) {
+    return dateFormat.parse(date);
+  }).toList();
+
+  return dateTimes;
 }
 
 Future<String> getUserId() async {
