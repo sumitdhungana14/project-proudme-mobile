@@ -642,8 +642,10 @@ class _SleepCardState extends State<SleepCard> {
                                 Text(
                                   _feedback,
                                   style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 18,
                                     fontFamily: fontFamily,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green
                                   ),
                                 ),
                               ],
