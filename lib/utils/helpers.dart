@@ -283,16 +283,17 @@ int timeOfDayToInt(TimeOfDay time) {
 }
 
 String getSleepPayload(
-    String goalHour,
-    String goalMinute,
+    TimeOfDay bedGoal,
+    TimeOfDay wakeUpGoal,
     int totalBehaviorInMinutes,
+    int totalGoalInMinutes,
     TimeOfDay bedBehavior,
     TimeOfDay wakeUpBehavior,
     String userId,
     String feedback,
     String reflection) {
-  double goalValue = getHourInDouble(goalHour, goalMinute);
   double behaviorValue = totalBehaviorInMinutes / 60;
+  double goalValue = totalGoalInMinutes / 60;
 
   bool goalStatus = behaviorValue >= goalValue;
   String date = getNowInFormat(dateFormat);
@@ -300,7 +301,9 @@ String getSleepPayload(
 
   Map<String, dynamic> sleep = {
     'bedBehavior': timeOfDayToInt(bedBehavior),
-    'wakeUpBehavior': timeOfDayToInt(wakeUpBehavior)
+    'wakeUpBehavior': timeOfDayToInt(wakeUpBehavior),
+    'bedGoal': timeOfDayToInt(bedGoal),
+    'wakeUpGoal': timeOfDayToInt(wakeUpGoal)
   };
 
   Map<String, dynamic> payload = {
@@ -345,9 +348,9 @@ String getEatingPayload(String goal, String behavior, String userId,
   return jsonEncode(payload);
 }
 
-String getChatbotPayloadForSleep(String goalHour, String goalMinute,
+String getChatbotPayloadForSleep(int totalGoalInMinutes,
     int totalBehaviorInMinutes, String reflection) {
-  double totalGoal = int.parse(goalHour) + (int.parse(goalMinute) / 60);
+  double totalGoal = totalGoalInMinutes / 60;
   double totalBehavior = totalBehaviorInMinutes / 60;
 
   double percentageAchieved = (totalBehavior / totalGoal) * 100;

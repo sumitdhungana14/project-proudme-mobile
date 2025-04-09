@@ -214,7 +214,11 @@ class _DailyReportPageState extends State<DailyReportPage> {
 
     if (title == 'Fruits & Vegetables') {
       return '${value.toString()} Servings';
-    } else {
+    } else if (title == 'Sleep') {
+      final double hours = (value is num ? value : double.tryParse(value.toString()) ?? 0) / 1.0;
+      return '${hours.toStringAsFixed(2)} hrs';
+    }
+    else {
       final double hours = (value is num ? value : double.tryParse(value.toString()) ?? 0) / 60.0;
       return '${hours.toStringAsFixed(2)} hrs';
     }
