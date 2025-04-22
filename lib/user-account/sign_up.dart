@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' show post, get;
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
+import 'package:project_proud_me/introduction/introduction.dart';
+import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/sign_up_verification.dart';
 import 'package:project_proud_me/widgets/toast.dart';
+import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
 
 class SignUpScreen extends StatefulWidget {
@@ -132,28 +135,57 @@ final Map<String, dynamic> _formData = {
     }
 
     String jsonData = jsonEncode(_formData);
-    String requiredCode = generateRandomString(8);
-    
-    String emailParameters = getEmailParameters(requiredCode);
-    sendEmailAndRedirectToEmailVerificationOnSuccess(emailParameters, jsonData, requiredCode);
+
+    registerUser(jsonData);
   }
 
-  Future<void> sendEmailAndRedirectToEmailVerificationOnSuccess(String emailParameters, String jsonData, String requiredCode) async {
+  Future<void> registerUser(String jsonData) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
       var response = await post(
-        Uri.parse(sendEmail),
-        body: emailParameters,
+        Uri.parse(register),
+        body: jsonData,
         headers: baseHttpHeader,
       );
 
       if (response.statusCode == 200) {
+
+        var loginResponse = await post(
+        Uri.parse(login),
+        body: jsonData,
+        headers: baseHttpHeader,
+      );
+
+      if (loginResponse.statusCode == 200) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString(authTokenKey, loginResponse.body);
+        
+        var userResponse = await get(
+            Uri.parse(users),
+            headers: {
+              'Authorization': 'Bearer ${loginResponse.body}',
+            },
+          );
+
+          if (userResponse.statusCode == 200) {
+              await prefs.setString(userDataKey, userResponse.body);
+            } else if (userResponse.statusCode == 401) {
+              await prefs.remove(authTokenKey);
+              await prefs.remove(userDataKey);
+            }
+          
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SignUpVerificationScreen(data: jsonData, requiredCode: requiredCode)),
+          MaterialPageRoute(builder: (context) => MyJournalScreen()),
+        );
+      }
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyJournalScreen()),
         );
       } 
     } catch (e) {
@@ -210,6 +242,7 @@ final Map<String, dynamic> _formData = {
                 ),
                 const SizedBox(height: 20.0),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Username'),
                   onChanged: (value) async => await updateFormData('name', value),
                   validator: (value) {
@@ -220,11 +253,13 @@ final Map<String, dynamic> _formData = {
                       },
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Password'),
                   onChanged: (value) => updateFormData('password', value),
                   obscureText: true,
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Confirm Password'),
                   onChanged: (value) => updateFormData('confirmPassword', value),
                   obscureText: true,
@@ -236,14 +271,17 @@ final Map<String, dynamic> _formData = {
                       },
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'First Name'),
                   onChanged: (value) => updateFormData('firstName', value),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Last Name'),
                   onChanged: (value) => updateFormData('lastName', value),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'School Attending'),
                   onChanged: (value) => updateFormData('schoolName', value),
                 ),
@@ -289,6 +327,7 @@ final Map<String, dynamic> _formData = {
                   }).toList(),
                 ),
                 TextFormField(
+                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   decoration: const InputDecoration(labelText: 'Email Address'),
                   keyboardType: TextInputType.emailAddress,
                   onChanged: (value) => updateFormData('email', value),

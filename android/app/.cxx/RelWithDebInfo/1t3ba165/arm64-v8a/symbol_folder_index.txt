@@ -1,0 +1,1 @@
+/Users/sumitdhungana14/projects/project-proudme-mobile/build/app/intermediates/cxx/RelWithDebInfo/1t3ba165/obj/arm64-v8a

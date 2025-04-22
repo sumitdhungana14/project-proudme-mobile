@@ -4,7 +4,7 @@ import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
 import 'package:project_proud_me/introduction/introduction_footer_section.dart';
 import 'package:project_proud_me/introduction/introduction_image_section.dart';
-import 'package:project_proud_me/introduction/introduction_list_section.dart';
+import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/sign_in.dart';
 import 'package:project_proud_me/utils/helpers.dart';
@@ -99,33 +99,6 @@ class _IntroductionState extends State<Introduction> {
                   ),
             ),
             centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: _isSignedIn ?
-                () async {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  
-                  logout();
-
-                  setState(() {
-                    _isSignedIn = false;
-                    _isLoading = false;
-                  });
-                } :
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
-                  );
-                },
-                icon: Icon(
-                  _isSignedIn ? Icons.logout : Icons.person,
-                  color: const Color(0xfff5b342),
-                ),
-              ),
-            ],
           ),
         drawer: _isSignedIn ? MyDrawer() : null,
         body: SingleChildScrollView(
@@ -134,44 +107,86 @@ class _IntroductionState extends State<Introduction> {
             children: [
               IntroductionImageSection(),
               Container(
+                padding: const EdgeInsets.all(16.0), 
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _isSignedIn ?
+                  [
+                    const Text(
+                    "Go to Journal screen to set goals and track your behavior.",
+                    style: TextStyle(
+                      fontSize: 25.0,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
+                  ElevatedButton(
+                  onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyJournalScreen()),
+                      );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      const Color(0xfff5b342)
+                    ),
+                  ),
+                  child: const Text(
+                    'Go to My Journal',
+                    style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25
+                      ),
+                    ),
+                  )] : [
+                    const Text(
+                    "Login to set goals and track your behavior.",
+                    style: TextStyle(
+                      fontSize: 25.0,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
+                    ElevatedButton (
+                    onPressed: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
+                      );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                      const Color(0xfff5b342)
+                    ),
+                  ),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25
+                      ),
+                    ),
+                  )
+                  ],
+
+              ),),
+              
+              Container(
                 padding: const EdgeInsets.all(16.0),
                 child: const Text(
                   introductionStartingText,
                   style: TextStyle(
-                    fontSize: 16.0,
+                    fontSize: 25.0,
                     fontFamily: fontFamily,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: TextListWidget(
-                  title: journalHeader,
-                  texts: journalList
-                )
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: TextListWidget(
-                  title: peHeader,
-                  texts: peList
-                )
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: TextListWidget(
-                  title: cafeteriaHeader,
-                  texts: cafeteriaList
-                )
-              ),
               Container(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-                child: const IntroductionFooterWidget(regularText: introductionEndingText1, clickableText: labEmail)
+                child: const IntroductionFooterWidget(regularText: introductionEndingText1)
               ),
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                child: const IntroductionFooterWidget(regularText: introductionEndingText2, clickableText: piEmail)
-              ),
+              const SizedBox(height: 10,),
             ],
           ),
         ),

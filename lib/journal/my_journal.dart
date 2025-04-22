@@ -1,5 +1,5 @@
 import 'package:appinio_swiper/appinio_swiper.dart'
-    show AppinioSwiper, SwipeOptions;
+    show AppinioSwiper, SwipeOptions, AppinioSwiperController;
 import 'package:flutter/material.dart';
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/introduction/introduction.dart';
@@ -17,6 +17,8 @@ class MyJournalScreen extends StatefulWidget {
 }
 
 class _MyJournalScreenState extends State<MyJournalScreen> {
+  final AppinioSwiperController swiperController = AppinioSwiperController();
+
   bool _isLoading = false;
   late String _userId;
 
@@ -56,30 +58,6 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                 ),
               ),
               centerTitle: true,
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    setState(() {
-                      _isLoading = true;
-                    });
-
-                    logout();
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Introduction()),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Color(0xfff5b342),
-                  ),
-                ),
-              ],
             ),
             drawer: MyDrawer(),
             body: SingleChildScrollView(
@@ -89,6 +67,7 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.90,
                     child: AppinioSwiper(
+                      controller: swiperController,
                       backgroundCardCount: -1,
                       swipeOptions: const SwipeOptions.only(
                           up: false, down: false, right: true, left: true),
@@ -97,16 +76,36 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                       cardBuilder: (BuildContext context, int index) {
                         switch (index) {
                           case 0:
-                            return ActivityCard();
+                            return ActivityCard(userId: _userId, swipeLeft: () {
+                              swiperController.setCardIndex(3);
+                            },
+                            swipeRight: () {
+                              swiperController.setCardIndex(1);
+                            },);
                           case 1:
-                            return ScreenTimeCard();
+                            return ScreenTimeCard(userId: _userId, swipeLeft: () {
+                              swiperController.setCardIndex(0);
+                            },
+                            swipeRight: () {
+                              swiperController.setCardIndex(2);
+                            });
                           case 2:
-                            return FruitsVegetablesCard(
-                              userId: _userId,
+                            return FruitsVegetablesCard(userId: _userId, swipeLeft: () {
+                              swiperController.setCardIndex(1);
+                            },
+                            swipeRight: () {
+                              swiperController.setCardIndex(3);
+                            }
                             );
                           case 3:
                             return SleepCard(
                               userId: _userId,
+                              swipeLeft: () {
+                                swiperController.setCardIndex(2);
+                              },
+                              swipeRight: () {
+                                swiperController.setCardIndex(0);
+                              }
                             );
                           default:
                             throw Exception();

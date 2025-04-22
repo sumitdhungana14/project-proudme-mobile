@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' show post;
 import 'package:project_proud_me/constant.dart';
@@ -7,13 +9,11 @@ import 'package:project_proud_me/user-account/sign_in.dart';
 import 'package:project_proud_me/widgets/toast.dart';
 
 class SignUpVerificationScreen extends StatefulWidget {
-  final String data;
-  final String requiredCode;
+  final String email;
 
   SignUpVerificationScreen({
     Key? key,
-    required this.data,
-    required this.requiredCode,
+    required this.email,
   }) : super(key: key);
 
   @override
@@ -36,47 +36,58 @@ class _SignUpVerificationScreenState extends State<SignUpVerificationScreen> {
     });
   }
 
-  void handleConfirm() {
-    if (widget.requiredCode != _formData['code']) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text(confirmationErrorMessage),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-
-      return;
-    }
-
-    registerUser(widget.data);
-  }
-
-  Future<void> registerUser(String jsonData) async {
+  void sendCode() async {
     setState(() {
       _isLoading = true;
     });
 
+    Map<String, dynamic> payload = {
+      'email': widget.email,
+    };
+
+    String jsonData = jsonEncode(payload);
+
     try {
       var response = await post(
-        Uri.parse(signUp),
+        Uri.parse(sendVerificationCode),
         body: jsonData,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHttpHeader,
       );
 
       int code = response.statusCode;
+
+      if (code == 200) {
+        showCustomToast(context, emailSentMessage, Theme.of(context).primaryColor);
+      } else if (code == 400 || code == 500) {
+        showCustomToast(context, verificationCodeNotSent, errorColor);
+      }
+    } catch (e) {
+      showCustomToast(context, e.toString(), errorColor);
+    } finally {
+      resetForm();
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void handleVerify() async {
+    setState(() {
+      _isLoading = true;
+      _formData['email'] = widget.email;
+    });
+
+    String jsonData = jsonEncode(_formData);
+
+    try {
+      var response = await post(
+        Uri.parse(verifyUser),
+        body: jsonData,
+        headers: baseHttpHeader,
+      );
+
+      int code = response.statusCode;
+      print(code);
 
       if (code == 200) {
         Navigator.push(
@@ -148,13 +159,25 @@ class _SignUpVerificationScreenState extends State<SignUpVerificationScreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _allFieldsFilled ? handleConfirm : null,
+                    onPressed: _allFieldsFilled ? handleVerify : null,
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all<Color>(
                           const Color(0xfff5b342)),
                     ),
-                    child: const Text('Confirm',
+                    child: const Text('Verify',
                         style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      sendCode();
+                    },
+                    child: const Text(
+                      resendCodeButtonText,
+                      style: TextStyle(
+                        fontFamily: fontFamily,
+                      ),
+                    ),
                   ),
                 ],
               ),

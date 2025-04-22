@@ -55,16 +55,50 @@ const List<String> myJournalItems = [
 ];
 const secondaryColor = Color(0xfff5b342);
 
-const Map<String, List<String>> activityTypes = {
-  'Strenuous': ['Running', 'Jogging', 'Football', 'Soccer', 'Basketball'],
-  'Moderate': ['Baseball', 'Tennis', 'Fast Walking', 'Volleyball', 'Badminton'],
-  'Mild': ['Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']
+const addNewKey = '+ Add New';
+
+Map<String, List<String>> activityTypes = {
+  'Strenuous': [addNewKey, 'Running', 'Jogging', 'Football', 'Soccer', 'Basketball'],
+  'Moderate': [addNewKey, 'Baseball', 'Tennis', 'Fast Walking', 'Volleyball', 'Badminton'],
+  'Mild': [addNewKey, 'Yoga', 'Archery', 'Bowling', 'Golf', 'Easy Walking']
 };
 
-const List<String> screenTimeType = ['Academic', 'Gaming & Video Chatting'];
+Map<String, List<String>> screenTimeTypes = {
+  'Non-Academic': [addNewKey, 'Video Games', 'Looking at Photos', 'Video Chatting', 'Watching TV', 'Watching Movies'],
+  'Academic': [addNewKey, 'Online Learning', 'Homework', 'Other Academic Work'],
+};
+
+Map<String, List<String>> eatTypes = {
+  'Fruits': [addNewKey, 'Apples', 'Bananas', 'Oranges', 'Strawberries', 'Grapes', 'Watermelon'],
+  'Vegetables': [addNewKey, 'Carrots', 'Brocolli', 'Spinach', 'Potatoes', 'Tomatoes'],
+};
+
+const List<String> activityList = [
+  'Running',
+  'Jogging',
+  'Football',
+  'Soccer',
+  'Basketball',
+  'Baseball',
+  'Tennis',
+  'Fast Walking',
+  'Volleyball',
+  'Badminton',
+  'Yoga',
+  'Archery',
+  'Bowling',
+  'Golf',
+  'Easy Walking'
+];
+
+const List<String> screenTimeType = ['Academic', 'Non-Academic'];
+const List<String> eatingType = ['Fruits', 'Vegetables'];
+
 const dateFormat = 'M/d/yyyy';
 const recommendedSleepValue = 9;
 const recommendedEatingValue = 5;
+const recommendedPhysicalActivityValue = 60;
+const recommendedScreenTimeValue = 120;
 const baseHttpHeader = {
   'Content-Type': 'application/json',
 };
