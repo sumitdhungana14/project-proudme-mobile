@@ -9,6 +9,7 @@ import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/forgot_credentials.dart';
 import 'package:project_proud_me/user-account/sign_up.dart';
 import 'package:project_proud_me/user-account/sign_up_verification.dart';
+import 'package:project_proud_me/utils/secure_storage.dart';
 import 'package:project_proud_me/widgets/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
@@ -32,6 +33,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool _allFieldsFilled = false;
   bool _isLoading = false;
+  bool _rememberMe = false;
 
   void updateFormData(String field, dynamic value) {
     setState(() {
@@ -60,6 +62,10 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       if (response.statusCode == 200) {
+        if (_rememberMe) {
+          await SecureStorageUtil.storeNewKey(_formData['email'], _formData['password']);
+        }
+
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString(authTokenKey, response.body);
         
@@ -162,6 +168,26 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _rememberMe = value!;
+                        });
+                      },
+                    ),
+                    const Text('Remember Me',
+                      style: TextStyle(
+                        fontFamily: fontFamily,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               ElevatedButton(
                 onPressed: _allFieldsFilled ? handleLogin : null,
                 style: ButtonStyle(

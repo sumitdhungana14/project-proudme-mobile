@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' show post, get;
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
-import 'package:project_proud_me/introduction/introduction.dart';
 import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
-import 'package:project_proud_me/user-account/sign_up_verification.dart';
+import 'package:project_proud_me/utils/secure_storage.dart';
 import 'package:project_proud_me/widgets/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
@@ -39,6 +38,7 @@ final Map<String, dynamic> _formData = {
   bool _emailAlreadyExists = false;
   bool _usernameAlreadyExists = false;
   bool _isLoading = false;
+  bool _rememberMe = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
@@ -153,11 +153,15 @@ final Map<String, dynamic> _formData = {
 
       if (response.statusCode == 200) {
 
+        if (_rememberMe) {
+          await SecureStorageUtil.storeNewKey(_formData['name'], _formData['password']);
+        }
+
         var loginResponse = await post(
-        Uri.parse(login),
-        body: jsonData,
-        headers: baseHttpHeader,
-      );
+          Uri.parse(login),
+          body: jsonData,
+          headers: baseHttpHeader,
+        );
 
       if (loginResponse.statusCode == 200) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -361,6 +365,19 @@ final Map<String, dynamic> _formData = {
                       },
                     ),
                     const Text(adsAgreement),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _rememberMe = value!;
+                        });
+                      },
+                    ),
+                    const Text('Remember Me'),
                   ],
                 ),
                 ElevatedButton(
