@@ -99,33 +99,6 @@ class _IntroductionState extends State<Introduction> {
                   ),
             ),
             centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: _isSignedIn ?
-                () async {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  
-                  logout();
-
-                  setState(() {
-                    _isSignedIn = false;
-                    _isLoading = false;
-                  });
-                } :
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
-                  );
-                },
-                icon: Icon(
-                  _isSignedIn ? Icons.logout : Icons.person,
-                  color: const Color(0xfff5b342),
-                ),
-              ),
-            ],
           ),
         drawer: _isSignedIn ? MyDrawer() : null,
         body: SingleChildScrollView(

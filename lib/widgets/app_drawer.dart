@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/daily-report/daily_report.dart';
+import 'package:project_proud_me/user-account/sign_in.dart';
+import 'package:project_proud_me/utils/helpers.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
 class MyDrawer extends StatefulWidget {
@@ -82,6 +84,24 @@ class _MyDrawerState extends State<MyDrawer> {
               Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const DailyReportPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text(
+              'Logout',
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+                fontFamily: fontFamily
+              )
+            ),
+            onTap: () {
+              logout();
+              
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SignInScreen(redirectionFromVerificationScreen: false,)),
               );
             },
           ),

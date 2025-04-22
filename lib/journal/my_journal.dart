@@ -58,30 +58,6 @@ class _MyJournalScreenState extends State<MyJournalScreen> {
                 ),
               ),
               centerTitle: true,
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    setState(() {
-                      _isLoading = true;
-                    });
-
-                    logout();
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Introduction()),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Color(0xfff5b342),
-                  ),
-                ),
-              ],
             ),
             drawer: MyDrawer(),
             body: SingleChildScrollView(

@@ -61,7 +61,7 @@ class _CustomCalendarState extends State<CustomCalendar> {
           if (_isHighlighted(day)) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.green,
+                color: Color(0xfff5b342),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
