@@ -3,7 +3,6 @@ import 'dart:convert' show jsonEncode;
 import 'package:http/http.dart' show post, get;
 import 'package:project_proud_me/constant.dart';
 import 'package:project_proud_me/endpoints.dart';
-import 'package:project_proud_me/introduction/introduction.dart';
 import 'package:project_proud_me/journal/my_journal.dart';
 import 'package:project_proud_me/language.dart';
 import 'package:project_proud_me/user-account/forgot_credentials.dart';
@@ -34,6 +33,42 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _allFieldsFilled = false;
   bool _isLoading = false;
   bool _rememberMe = false;
+
+  final FocusNode _emailFocusNode = FocusNode();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+  List<String> _savedEmails = [];
+  Map<String, String> _emailPasswordMap = {};
+  List<String> _filteredEmails = [];
+
+  void _loadSavedCredentials() async {
+    var credentials = await SecureStorageUtil.getAllStoredData();
+    setState(() {
+      _emailPasswordMap = credentials;
+      _savedEmails = credentials.keys.toList();
+      _filteredEmails = List.from(_savedEmails);
+    });
+  }
+
+  void _handleEmailFocusChange() {
+    if (_emailFocusNode.hasFocus) {
+      _showOverlay();
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _filterEmailList() {
+    String input = _emailController.text.toLowerCase();
+    setState(() {
+      _filteredEmails = _savedEmails
+          .where((email) => email.toLowerCase().contains(input))
+          .toList();
+    });
+    _overlayEntry?.markNeedsBuild();
+  }
 
   void updateFormData(String field, dynamic value) {
     setState(() {
@@ -107,6 +142,18 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _emailFocusNode.addListener(_handleEmailFocusChange);
+    _loadSavedCredentials();
+    _emailFocusNode.addListener(() {
+      if (!_emailFocusNode.hasFocus) {
+        _removeOverlay();
+      }
+    });
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (widget.redirectionFromVerificationScreen) {
@@ -116,6 +163,64 @@ class _SignInScreenState extends State<SignInScreen> {
         Theme.of(context).primaryColor
       );
     }
+  }
+
+  void _showOverlay() {
+    if (!_emailFocusNode.hasFocus) return;
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry!.remove();
+    _overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry() {
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: MediaQuery.of(context).size.width - 40,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0.0, 56.0),
+          child: Material(
+            elevation: 4.0,
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: _filteredEmails.length,
+              itemBuilder: (context, index) {
+                final username = _filteredEmails[index];
+                return ListTile(
+                  title: Text(username),
+                  onTap: () {
+                    _emailController.text = username;
+                    _passwordController.text = _emailPasswordMap[username]!;
+                    updateFormData('email', username);
+                    updateFormData('password', _emailPasswordMap[username]!);
+                    _emailFocusNode.unfocus();
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    _removeOverlay();
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return _overlayEntry!;
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _emailFocusNode.dispose();
+    _removeOverlay();
+    super.dispose();
   }
 
   @override
@@ -147,18 +252,31 @@ class _SignInScreenState extends State<SignInScreen> {
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
-                  decoration: const InputDecoration(
-                    labelText: 'Username/Email',
+                child: CompositedTransformTarget(
+                  link: _layerLink,
+                  child: TextFormField(
+                    controller: _emailController,
+                    focusNode: _emailFocusNode,
+                    onTap: () {
+                      _filterEmailList();
+                      _showOverlay();
+                    },
+                    onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
+                    decoration: const InputDecoration(
+                      labelText: 'Username/Email',
+                    ),
+                    onChanged: (value) {
+                      updateFormData('email', value);
+                      _filterEmailList();
+                    },
                   ),
-                  onChanged: (value) => updateFormData('email', value),
-                ),
+                )
               ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
+                  controller: _passwordController,
                   onTapOutside: (event) => {FocusManager.instance.primaryFocus?.unfocus()},
                   obscureText: true,
                   onChanged: (value) => updateFormData('password', value),
