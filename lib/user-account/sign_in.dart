@@ -32,7 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool _allFieldsFilled = false;
   bool _isLoading = false;
-  bool _rememberMe = false;
+  bool _rememberMe = true;
 
   final FocusNode _emailFocusNode = FocusNode();
   final TextEditingController _emailController = TextEditingController();
@@ -322,20 +322,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
               ),
               const SizedBox(height: 10),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ForgetCredentialsScreen()),
-                  );
-                },
-                child: const Text(
-                    'Forgot your Username or Password?',
-                    style: TextStyle(
-                      fontFamily: fontFamily,
-                    ),
-                  ),
-              ),
               const SizedBox(height: 10),
               const Text(
                 "Don't have an account?",

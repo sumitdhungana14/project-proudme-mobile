@@ -38,7 +38,7 @@ final Map<String, dynamic> _formData = {
   bool _emailAlreadyExists = false;
   bool _usernameAlreadyExists = false;
   bool _isLoading = false;
-  bool _rememberMe = false;
+  bool _rememberMe = true;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
