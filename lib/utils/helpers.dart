@@ -44,6 +44,11 @@ String getNowInFormat(String format) {
   return DateFormat(format).format(now);
 }
 
+String getYesterdaysDate(String format) {
+  DateTime yesterday = DateTime.now().subtract(const Duration(days: 1));
+  return DateFormat(format).format(yesterday);
+}
+
 TimeOfDay intToTimeOfDay(int intValue) {
   final int hour = intValue ~/ 60;
   final int minute = intValue % 60;

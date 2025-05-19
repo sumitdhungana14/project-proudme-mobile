@@ -704,6 +704,16 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
                                     )
                                   ],
                                 ),
+                                Text(
+                                    'Set goals and track your behavior for yesterday (${getYesterdaysDate('d/M/y')})',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontFamily,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                ),
                                 const Divider(),
                                 DropdownButtonFormField<String>(
                                   decoration: const InputDecoration(

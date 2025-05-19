@@ -113,7 +113,7 @@ class _IntroductionState extends State<Introduction> {
                   children: _isSignedIn ?
                   [
                     const Text(
-                    "Go to Journal screen to set goals and track your behavior.",
+                    "Welcome to ProudMe Journal! Let's set SMART goals and track your behavior!",
                     style: TextStyle(
                       fontSize: 25.0,
                       fontFamily: fontFamily,
@@ -141,7 +141,7 @@ class _IntroductionState extends State<Introduction> {
                     ),
                   )] : [
                     const Text(
-                    "Login to set goals and track your behavior.",
+                    "Welcome to ProudMe Journal! Login to set SMART goals and track your behavior!",
                     style: TextStyle(
                       fontSize: 25.0,
                       fontFamily: fontFamily,
@@ -172,16 +172,6 @@ class _IntroductionState extends State<Introduction> {
 
               ),),
               
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                child: const Text(
-                  introductionStartingText,
-                  style: TextStyle(
-                    fontSize: 25.0,
-                    fontFamily: fontFamily,
-                  ),
-                ),
-              ),
               Container(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                 child: const IntroductionFooterWidget(regularText: introductionEndingText1)
