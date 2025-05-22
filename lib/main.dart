@@ -9,7 +9,7 @@ final GlobalKey<NavigatorState> dialogKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initNotifications();
+  // await initNotifications();
   runApp(const MyApp());
 }
 
