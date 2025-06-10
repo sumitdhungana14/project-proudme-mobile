@@ -134,7 +134,7 @@ class _ScreenTimeCardState extends State<ScreenTimeCard> {
           'Screen Time',
           recommendedScreenTimeValue);
         var chatResponse = await post(
-          Uri.parse(getChatReply),
+          Uri.parse(getChatReplyForScreentime),
           body: chatPayload,
           headers: baseHttpHeader,
         );

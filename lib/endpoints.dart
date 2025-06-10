@@ -7,6 +7,7 @@ const String signUp = '$baseUrl/signup';
 const String getGoal = '$baseUrl/dailyBehavior';
 const String saveGoal = '$baseUrl/behaviors';
 const String getChatReply = '$baseUrl/chatbot';
+const String getChatReplyForScreentime = '$baseUrl/chatbot/screentime';
 const String register = '$baseUrl/register';
 const String verifyUser = '$baseUrl/verify';
 const String sendVerificationCode = '$baseUrl/send-code';
